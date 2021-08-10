@@ -1,0 +1,43 @@
+body {
+  background: #ddd;
+  text-align: center;
+  padding-top: 2em;
+}
+
+.parent {
+  width: 320px;
+  height: 50px;
+  display: block;
+  transition: all 0.3s;
+  cursor: pointer;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+/***  desired colors for children  ***/
+.parent{
+  color: #000;
+  background: #fff;
+}
+.parent:hover{
+  color: #0077B5;
+  background: #fff;}
+
+.parent span{
+  font-size: 18px;
+  margin-right: 8px;
+  font-weight: bold;
+  font-family: 'Helvetica';
+  line-height: 26px;
+  vertical-align: top;
+}
+.parent svg{
+  max-height: 26px;
+  width: auto;
+  display: inline;
+}
+
+/****  magic trick  *****/
+.parent svg path{
+  fill: currentcolor;
+}
