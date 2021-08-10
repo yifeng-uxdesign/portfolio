@@ -67,8 +67,8 @@ body {
    
 }
 .project-bg-2{
-background-color: #045de9;
-background-image: linear-gradient(240deg, #1695F0 0%, #09c6f9 100%);   
+   background-color: #045de9;
+   background-image: linear-gradient(240deg, #1695F0 0%, #09c6f9 100%);   
    margin-top: 80px;
    margin-left: auto;
    margin-right: auto;
@@ -80,7 +80,7 @@ background-image: linear-gradient(240deg, #1695F0 0%, #09c6f9 100%);
 }
 
 .project-bg-lam{
-background-color: #0E558B;
+   background-color: #0E558B;
    margin-top: 80px;
    margin-left: auto;
    margin-right: auto;
@@ -92,14 +92,13 @@ background-color: #0E558B;
 }
 
 .project-bg-pod{
-  background-image: url(airpod-bg.png);
-    background-repeat: no-repeat;
-    background-size: cover;
+  background-color: #6617cb;
+  background-image: linear-gradient(315deg, #6617cb 0%, #cb218e 74%);
    margin-top: 80px;
    margin-left: auto;
    margin-right: auto;
    width: 95%;
-   height:750px;
+   height:auto;
     -webkit-box-shadow: 0 8px 20px -6px #595959;
     -moz-box-shadow: 0 8px 20px -6px #595959; 
     box-shadow: 0 8px 20px -6px #959595;
@@ -301,8 +300,8 @@ a.logo:hover, a.logo:focus {color: #121212;}
 }
 
 .pod{
-    height: 70%;
-    width: auto;
+    height: auto;
+    width: 100%;
     
 }
 .action{
