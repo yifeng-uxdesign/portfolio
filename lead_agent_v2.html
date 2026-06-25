@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lead Intelligence Agent — AI Agent Behavior Design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet" />
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --white:      #ffffff;
+    --off-white:  #f5f7f5;
+    --green:      #00c853;
+    --green-dark: #00a846;
+    --green-pale: #e8f9ef;
+    --green-mid:  rgba(0,200,83,0.12);
+    --ink:        #111c1a;
+    --ink-mid:    #3a4a44;
+    --muted:      #6b7f79;
+    --border:     #e0e8e4;
+    --border-strong: rgba(0,200,83,0.25);
+    --card-bg:    #f9fbfa;
+    --sn-navy:    #0b1f35;
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--white);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--off-white); }
+  ::-webkit-scrollbar-thumb { background: var(--green); border-radius: 2px; }
+
+  /* ── PORTFOLIO NAV (Yi Feng style) ── */
+  .portfolio-nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 48px;
+    height: 64px;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .pnav-logo {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none; color: var(--ink);
+  }
+  .pnav-logo img {
+    height: 32px; width: auto;
+  }
+  .pnav-logo span {
+    font-family: 'Lato', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--ink);
+    letter-spacing: -0.3px;
+  }
+  .pnav-links { display: flex; gap: 32px; }
+  .pnav-links a {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-mid);
+    text-decoration: none;
+    letter-spacing: 0.01em;
+    transition: color 0.2s;
+    position: relative;
+  }
+  .pnav-links a::after {
+    content: '';
+    position: absolute; bottom: -2px; left: 0; right: 0; height: 2px;
+    background: var(--green);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.25s ease;
+    border-radius: 1px;
+  }
+  .pnav-links a:hover { color: var(--green-dark); }
+  .pnav-links a:hover::after { transform: scaleX(1); }
+
+  /* ── PROGRESS BAR ── */
+  #progress {
+    position: fixed; top: 64px; left: 0; height: 2px;
+    background: var(--green); z-index: 300; width: 0%;
+    transition: width 0.1s linear;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh; display: flex; align-items: flex-end;
+    padding: 64px 48px 80px;
+    position: relative; overflow: hidden;
+    background: var(--sn-navy);
+  }
+
+  /* ServiceNow logo — top-left of hero */
+  .hero-sn-logo {
+    position: absolute;
+    top: calc(64px + 128px); /* below portfolio nav + breathing room */
+    left: 48px;
+    z-index: 3;
+    opacity: 0;
+    animation: fadeIn 0.8s ease 0.1s forwards;
+  }
+  .hero-sn-logo img {
+    height: 28px;
+    width: auto;
+    display: block;
+    filter: brightness(1); /* already white */
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 70% 60% at 75% 25%, rgba(0,200,83,0.10) 0%, transparent 65%),
+      linear-gradient(160deg, #0b1f35 0%, #091929 100%);
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,200,83,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,83,0.06) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 25%, rgba(0,0,0,0.4) 75%, transparent 100%);
+  }
+  .hero-content { position: relative; z-index: 2; max-width: 900px; }
+  .hero-eyebrow {
+    font-size: 11px; font-weight: 500; letter-spacing: 0.2em;
+    color: var(--green); text-transform: uppercase; margin-bottom: 24px;
+    opacity: 0; transform: translateY(20px);
+    animation: fadeUp 0.8s ease 0.2s forwards;
+  }
+  .hero-title {
+    font-family: 'Lato', sans-serif;
+    font-size: clamp(42px, 6.5vw, 88px); font-weight: 900;
+    line-height: 1.0; letter-spacing: -2px; color: #fff;
+    margin-bottom: 32px;
+    opacity: 0; transform: translateY(30px);
+    animation: fadeUp 0.9s ease 0.35s forwards;
+  }
+  .hero-title em { color: var(--green); font-style: normal; }
+  .hero-meta {
+    display: flex; gap: 40px; flex-wrap: wrap;
+    opacity: 0; transform: translateY(20px);
+    animation: fadeUp 0.8s ease 0.55s forwards;
+  }
+  .hero-meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .hero-meta-label { font-size: 10px; letter-spacing: 0.15em; color: rgba(255,255,255,0.45); text-transform: uppercase; }
+  .hero-meta-value { font-size: 14px; color: rgba(255,255,255,0.85); }
+  .hero-scroll {
+    position: absolute; right: 48px; bottom: 80px; z-index: 2;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    opacity: 0; animation: fadeIn 1s ease 1.2s forwards;
+  }
+  .hero-scroll span { font-size: 10px; letter-spacing: 0.15em; color: rgba(255,255,255,0.35); text-transform: uppercase; writing-mode: vertical-lr; }
+  .scroll-line {
+    width: 1px; height: 60px;
+    background: linear-gradient(to bottom, var(--green), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+
+  /* ── INLINE NAV ── */
+  .inline-nav {
+    display: flex;
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 64px; z-index: 100;
+  }
+  .inline-nav a {
+    flex: 1; text-align: center; padding: 16px 0;
+    font-size: 12px; font-family: 'DM Sans', sans-serif; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); text-decoration: none;
+    position: relative;
+    transition: color 0.25s, background 0.25s;
+  }
+  .inline-nav a::after {
+    content: '';
+    position: absolute; bottom: 0; left: 15%; right: 15%; height: 2px;
+    background: var(--green);
+    transform: scaleX(0); transform-origin: center;
+    transition: transform 0.3s ease;
+    border-radius: 2px;
+  }
+  .inline-nav a:hover { color: var(--green-dark); background: var(--green-pale); }
+  .inline-nav a:hover::after { transform: scaleX(1); }
+  .inline-nav a.active { color: var(--green-dark); }
+  .inline-nav a.active::after { transform: scaleX(1); }
+
+  /* ── SHARED SECTION SHELL ── */
+  .section { padding: 100px 48px; max-width: 1280px; margin: 0 auto; }
+  .section-divider { height: 1px; background: var(--border); margin: 0 48px; }
+
+  /* ── REVEAL ── */
+  .reveal { opacity: 0; transform: translateY(36px); transition: opacity 0.75s ease, transform 0.75s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-left { opacity: 0; transform: translateX(-36px); transition: opacity 0.75s ease, transform 0.75s ease; }
+  .reveal-left.visible { opacity: 1; transform: translateX(0); }
+  .reveal-right { opacity: 0; transform: translateX(36px); transition: opacity 0.75s ease, transform 0.75s ease; }
+  .reveal-right.visible { opacity: 1; transform: translateX(0); }
+  .delay-1 { transition-delay: 0.1s; }
+  .delay-2 { transition-delay: 0.2s; }
+  .delay-3 { transition-delay: 0.3s; }
+  .delay-4 { transition-delay: 0.4s; }
+  .delay-5 { transition-delay: 0.5s; }
+
+  /* ── SECTION HEADER ── */
+  .section-label {
+    font-size: 10px; letter-spacing: 0.2em; color: var(--green-dark);
+    text-transform: uppercase; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-label::before { content: ''; display: block; width: 28px; height: 2px; background: var(--green); border-radius: 1px; }
+  .section-title {
+    font-family: 'Lato', sans-serif;
+    font-size: clamp(28px, 3.5vw, 48px); font-weight: 900;
+    line-height: 1.1; letter-spacing: -0.8px; color: var(--ink); margin-bottom: 20px;
+  }
+  .section-body { font-size: 15px; color: var(--muted); max-width: auto; line-height: 1.85; }
+
+  /* ── STACKED CARDS ── */
+  .stack-cards { display: flex; flex-direction: column; gap: 20px; margin-top: 48px; }
+  .stack-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    padding: 36px 44px;
+    transition: box-shadow 0.25s, border-left-color 0.25s;
+  }
+  .stack-card:hover { box-shadow: 0 4px 24px rgba(0,200,83,0.08); border-left-color: var(--green-dark); }
+  .stack-card h3 {
+    font-family: 'Lato', sans-serif; font-size: 12px; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--green-dark); margin-bottom: 14px;
+  }
+  .stack-card p { font-size: 15px; color: var(--ink-mid); line-height: 1.8; }
+
+  .role-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .tag {
+    font-size: 11px; letter-spacing: 0.06em; color: var(--green-dark);
+    background: var(--green-pale); border: 1px solid var(--border-strong);
+    border-radius: 3px; padding: 4px 12px; text-transform: uppercase;
+  }
+  .constraints-list { list-style: none; margin-top: 14px; }
+  .constraints-list li {
+    font-size: 14px; color: var(--ink-mid); padding: 9px 0;
+    border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px;
+  }
+  .constraints-list li:last-child { border-bottom: none; }
+  .constraints-list li::before { content: '↔'; color: var(--green); font-size: 13px; flex-shrink: 0; }
+
+  /* ── IMPACT GRID ── */
+  .impact-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 48px; }
+  .impact-item {
+    background: var(--green-pale); border: 1px solid var(--border-strong);
+    border-radius: 2px; padding: 36px 28px;
+  }
+  .impact-value {
+    font-family: 'Lato', sans-serif; font-size: 44px; font-weight: 900;
+    color: var(--green-dark); line-height: 1; margin-bottom: 10px;
+  }
+  .impact-label { font-size: 13px; color: var(--ink-mid); line-height: 1.65; }
+  .reflection-block {
+    margin-top: 40px; padding: 44px;
+    background: var(--sn-navy);
+    border-radius: 2px;
+  }
+  .reflection-block .section-label { color: var(--green); }
+  .reflection-block .section-label::before { background: var(--green); }
+  .reflection-block p {
+    font-family: 'Lato', sans-serif; font-size: 19px; font-weight: 700;
+    color: #fff; line-height: 1.55; max-width: 780px;
+  }
+
+  /* ── SOLUTION BLOCKS — full-width stacked ── */
+  .solution-block {
+    display: flex; flex-direction: column; gap: 40px;
+    margin-bottom: 90px; padding-bottom: 90px;
+    border-bottom: 1px solid var(--border);
+  }
+  .solution-block:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  /* reverse class no longer reorders — both show text then visual */
+  .solution-block.reverse .solution-text { order: 1; }
+  .solution-block.reverse .solution-visual { order: 2; }
+  .solution-number {
+    font-family: 'Lato', sans-serif; font-size: 72px; font-weight: 900;
+    color: rgba(0,200,83,0.12); line-height: 1; margin-bottom: -16px;
+  }
+  .solution-text {
+    max-width: 640px;
+  }
+  .solution-text h3 {
+    font-family: 'Lato', sans-serif; font-size: 24px; font-weight: 700;
+    line-height: 1.25; letter-spacing: -0.3px; color: var(--ink); margin-bottom: 14px;
+  }
+  .solution-text p { font-size: 15px; color: var(--ink-mid); line-height: 1.8; }
+  .solution-visual { width: 100%; }
+
+  /* ── IMAGE FRAME ── */
+  .img-frame {
+    position: relative; border-radius: 4px; overflow: hidden;
+    border: 1px solid var(--border); background: var(--off-white);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+  }
+  .img-frame img { width: 100%; display: block; transition: transform 0.55s ease; }
+  .img-frame:hover img { transform: scale(1.015); }
+
+  /* ── EVOLUTION STEPS ── */
+  .evo-steps { display: flex; flex-direction: column; gap: 20px; margin-top: 56px; }
+  .evo-step {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-left: 3px solid transparent; padding: 44px;
+    transition: border-left-color 0.3s, box-shadow 0.3s;
+  }
+  .evo-step:hover { border-left-color: var(--green); box-shadow: 0 4px 24px rgba(0,200,83,0.07); }
+  .evo-step-header { display: flex; align-items: baseline; gap: 20px; margin-bottom: 18px; }
+  .evo-step-num {
+    font-family: 'Lato', sans-serif; font-size: 44px; font-weight: 900;
+    color: rgba(0,200,83,0.2); line-height: 1; flex-shrink: 0;
+  }
+  .evo-step-title {
+    font-family: 'Lato', sans-serif; font-size: 21px; font-weight: 700;
+    color: var(--ink); letter-spacing: -0.2px;
+  }
+  .evo-step-desc { font-size: 15px; color: var(--ink-mid); line-height: 1.8; max-width: 880px; }
+  .evo-step-img { margin-top: 32px; }
+
+  /* ── FULL-WIDTH IMAGE ── */
+  .full-img-wrap { padding: 0 48px; }
+  .full-img-wrap .img-frame { border-radius: 2px; }
+
+  /* ── FOOTER ── */
+  .site-footer {
+    background: var(--sn-navy); color: rgba(255,255,255,0.5);
+    padding: 48px; display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 20px;
+  }
+  .site-footer .foot-brand { font-family: 'Lato', sans-serif; font-size: 14px; font-weight: 700; color: #fff; }
+  .site-footer p { font-size: 13px; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { to { opacity: 1; } }
+  @keyframes scrollPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+
+  /* ── IMAGE LIGHTBOX ── */
+  .lightbox-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(11, 31, 53, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.28s ease, visibility 0.28s ease;
+  }
+
+  .lightbox-modal.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .lightbox-content {
+    position: relative;
+    max-width: 95vw;
+    max-height: 92vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .lightbox-image {
+    max-width: 100%;
+    max-height: 92vh;
+    object-fit: contain;
+    border-radius: 6px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+    transform: scale(0.96);
+    transition: transform 0.28s ease;
+  }
+
+  .lightbox-modal.active .lightbox-image {
+    transform: scale(1);
+  }
+
+  .lightbox-close {
+    position: absolute;
+    top: -18px;
+    right: -18px;
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.95);
+    color: var(--sn-navy);
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.2);
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+
+  .lightbox-close:hover {
+    transform: scale(1.05);
+    background: #ffffff;
+  }
+
+  .img-frame img {
+    cursor: zoom-in;
+  }
+
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 860px) {
+    .portfolio-nav { padding: 0 20px; }
+    .pnav-links { gap: 20px; }
+    .hero { padding: 64px 24px 60px; }
+    .hero-sn-logo { left: 24px; top: calc(64px + 24px); }
+    .hero-scroll { display: none; }
+    .section { padding: 72px 24px; }
+    .section-divider { margin: 0 24px; }
+    .full-img-wrap { padding: 0 24px; }
+    .stack-card, .evo-step { padding: 28px 20px; }
+    .solution-block { gap: 28px; margin-bottom: 60px; padding-bottom: 60px; }
+    .impact-grid { grid-template-columns: 1fr; }
+    .inline-nav a { font-size: 10px; padding: 13px 4px; }
+    .site-footer { padding: 36px 24px; }
+  }
+
+  .proj-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+.proj-nav:hover { opacity: 0.75; }
+.proj-nav-label {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+  font-family: 'Lato', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.proj-nav-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  font-family: 'Lato', sans-serif;
+}
+.proj-nav.next { text-align: right; }
+.footer-center { text-align: center; }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<!-- ── PORTFOLIO NAV (Yi Feng) ── -->
+<header class="portfolio-nav">
+  <a class="pnav-logo" href="feature_work.html">
+    <img src="https://yi-design.github.io/Images/logo.png" alt="Yi Feng logo" />
+    <span>Yi Feng</span>
+  </a>
+  <nav class="pnav-links">
+    <a href="feature_work.html">Home</a>
+    <a href="feature_work.html">Work</a>
+    <a href="About_Me.html">About Me</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">AI Agent Design · Behavioral Systems · Sierra AI</div>
+
+    <h1 class="hero-title">
+      Designing a <em>Lead Intelligence</em><br>
+      Agent from the Inside Out
+    </h1>
+
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Role</span>
+        <span class="hero-meta-value">AI Agent Designer & Builder</span>
+      </div>
+
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Timeline</span>
+        <span class="hero-meta-value">6 Weeks · Experimental Prototype</span>
+      </div>
+
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Stack</span>
+        <span class="hero-meta-value">Python · Claude API · FastAPI · pytest</span>
+      </div>
+
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Client Context</span>
+        <span class="hero-meta-value">Sierra AI</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<nav class="inline-nav">
+  <a href="#background">Background</a>
+  <a href="#architecture">Architecture</a>
+  <a href="#testing">Testing</a>
+  <a href="#impact">Impact</a>
+  <a href="#reflection">Reflection</a>
+</nav>
+
+<div class="section-divider"></div>
+
+<section class="section" id="background">
+  <div class="section-label">Overview</div>
+  <h2 class="section-title">
+    Reframing AI design from<br>
+    interface thinking to behavior systems
+  </h2>
+
+  <p class="section-body">
+    This self-initiated project explored a core question: what does it mean to design an AI agent from the inside out? Instead of starting with UI flows or conversation scripts, the system was designed beginning with values, behavior rules, trust boundaries, and escalation logic.
+  </p>
+
+  <div class="stack-cards">
+    <div class="stack-card">
+      <h3>The Problem</h3>
+      <p>
+        Traditional lead automation systems optimize for conversion efficiency. This project explored whether an AI agent could instead optimize for trust, emotional awareness, and human collaboration while still supporting go-to-market objectives.
+      </p>
+    </div>
+
+    <div class="stack-card">
+      <h3>Core Challenge</h3>
+      <p>
+        Design a lead intelligence agent capable of qualifying prospects, tracking emotional states across conversations, evaluating product fit honestly, and escalating to humans at trust-critical moments.
+      </p>
+    </div>
+
+    <div class="stack-card">
+      <h3>Design Shift</h3>
+      <p>
+        The project revealed that AI product design is shifting from surface-level interaction design toward behavioral architecture — defining what an agent believes, how it behaves under pressure, and when it should defer to humans.
+      </p>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<section class="section" id="architecture">
+  <div class="section-label">Architecture</div>
+  <h2 class="section-title">
+    Six architectural iterations<br>
+    toward a trust-aware agent system
+  </h2>
+
+  <p class="section-body">
+    The system evolved from a simple intent-driven chatbot into a multi-layer collaboration architecture with emotional state modeling, dual behavior layers, and human-AI coordination modes.
+  </p>
+</section>
+
+<section class="section" style="padding-top:0">
+
+  <div class="solution-block">
+    <div class="solution-text">
+      <div class="solution-number">01</div>
+      <h3>Soul.md — Value Constitution</h3>
+      <p>
+        Instead of defining workflows first, the project began with a behavioral constitution describing the agent's values, conflict hierarchy, and escalation philosophy. This became the source of truth for all subsequent architecture and testing decisions.
+      </p>
+    </div>
+
+    <div class="solution-visual">
+      <div class="img-frame" style="background:var(--off-white);padding:0;overflow:hidden">
+        <style>
+          .soul-wrap{padding:24px 24px 20px;font-family:'DM Sans',sans-serif;color:var(--ink)}
+          .soul-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:24px}
+          .soul-tab{flex:1;text-align:center;padding:10px 0;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;font-weight:500;background:none;border-top:none;border-left:none;border-right:none}
+          .soul-tab.sa{color:var(--green-dark);border-bottom-color:var(--green)}
+          .soul-panel{display:none}.soul-panel.sa{display:block}
+          .soul-intro{font-size:11px;color:var(--muted);margin-bottom:16px;line-height:1.65}
+          .soul-vrow{display:flex;gap:0;margin-bottom:8px;cursor:pointer}
+          .soul-vrow:hover .soul-vcard{border-color:var(--green);background:var(--green-pale)}
+          .soul-vnum{font-family:'Lato',sans-serif;font-size:12px;font-weight:900;color:rgba(0,200,83,.2);min-width:32px;padding-top:12px;text-align:right;margin-right:10px;flex-shrink:0}
+          .soul-vcard{flex:1;border:1px solid var(--border);border-left:3px solid var(--green);background:var(--card-bg);padding:11px 14px;transition:all .2s}
+          .soul-vcard.sf{background:var(--green-pale);border-color:var(--border-strong)}
+          .soul-vtitle{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--green-dark);margin-bottom:4px}
+          .soul-vtag{font-size:11px;color:var(--ink-mid);line-height:1.6}
+          .soul-vbody{font-size:11px;color:var(--ink-mid);line-height:1.7;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:none}
+          .soul-vbody.so{display:block}
+          .soul-vpills{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
+          .soul-vpill{font-size:9px;letter-spacing:.05em;color:var(--green-dark);background:var(--green-pale);border:1px solid var(--border-strong);border-radius:2px;padding:2px 7px;text-transform:uppercase}
+          .soul-chev{margin-left:auto;font-size:11px;color:var(--green);transition:transform .2s;flex-shrink:0;padding-left:6px}
+          .soul-chev.so{transform:rotate(180deg)}
+          .soul-hstack{display:flex;flex-direction:column;gap:0;position:relative}
+          .soul-hstack::before{content:'';position:absolute;left:39px;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,var(--green),rgba(0,200,83,.05));z-index:0}
+          .soul-hrow{display:flex;align-items:center;gap:10px;position:relative;z-index:1;cursor:pointer;padding:2px 0}
+          .soul-hrow:hover .soul-hcard{border-color:var(--green)}
+          .soul-hbadge{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Lato',sans-serif;font-weight:900;font-size:14px;flex-shrink:0;border:2px solid transparent}
+          .soul-hb1{background:var(--sn-navy);color:var(--green);border-color:var(--green)}
+          .soul-hb2{background:var(--green-mid);color:var(--green-dark);border-color:var(--border-strong)}
+          .soul-hb3{background:var(--green-pale);color:var(--green-dark);border-color:var(--border-strong)}
+          .soul-hb4{background:var(--card-bg);color:var(--muted);border-color:var(--border)}
+          .soul-hcard{flex:1;border:1px solid var(--border);border-left:none;background:var(--card-bg);padding:11px 13px;transition:border-color .2s}
+          .soul-htitle{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
+          .soul-ht1{color:var(--green)}.soul-ht2{color:var(--green-dark)}.soul-ht3{color:var(--green-dark)}.soul-ht4{color:var(--muted)}
+          .soul-htag{font-size:10px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+          .soul-hdesc{font-size:11px;color:var(--ink-mid);line-height:1.65;display:none;margin-top:7px;padding-top:7px;border-top:1px solid var(--border)}
+          .soul-hdesc.so{display:block}
+          .soul-conn{height:14px;width:38px;display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:.35}
+          .soul-ifunres{flex:1;font-size:9px;letter-spacing:.07em;color:var(--muted);text-transform:uppercase;padding-left:2px}
+          .soul-stmt{margin-top:20px;padding:16px 18px;background:var(--sn-navy);border-radius:2px}
+          .soul-stmt p{font-family:'Lato',sans-serif;font-size:13px;font-weight:700;color:#fff;line-height:1.55}
+          .soul-stmt span{color:var(--green)}
+          .soul-mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+          .soul-mcard{border:1px solid var(--border);border-top:3px solid var(--green);background:var(--card-bg);padding:13px 15px;cursor:pointer;transition:box-shadow .2s,border-color .2s}
+          .soul-mcard:hover{box-shadow:0 2px 14px rgba(0,200,83,.07);border-color:var(--border-strong)}
+          .soul-mmode{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--green);font-weight:700;margin-bottom:4px}
+          .soul-mvalue{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-mid);margin-bottom:5px}
+          .soul-mshort{font-size:11px;color:var(--muted);line-height:1.55}
+          .soul-mbehav{font-size:11px;color:var(--ink-mid);line-height:1.65;display:none;margin-top:7px;padding-top:7px;border-top:1px solid var(--border)}
+          .soul-mbehav.so{display:block}
+          @keyframes soul-fade{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+          .soul-vbody.so,.soul-hdesc.so,.soul-mbehav.so{animation:soul-fade .22s ease}
+        </style>
+
+        <div class="soul-wrap">
+          <div class="soul-tabs">
+            <button class="soul-tab sa" onclick="soulTab('values',this)">7 Core Values</button>
+            <button class="soul-tab" onclick="soulTab('hierarchy',this)">Conflict Hierarchy</button>
+            <button class="soul-tab" onclick="soulTab('modes',this)">Collab Modes</button>
+          </div>
+
+          <div class="soul-panel sa" id="soul-values">
+            <p class="soul-intro">Value 1 is the north star — all others answer to it. Click any row to expand its principles.</p>
+            <div id="soul-vlist"></div>
+          </div>
+
+          <div class="soul-panel" id="soul-hierarchy">
+            <p class="soul-intro">When values conflict, this priority order resolves it. Rule 1 cannot be overridden by any instruction.</p>
+            <div class="soul-hstack" id="soul-hlist"></div>
+            <div class="soul-stmt"><p>A <span>trust-first</span> lead agent that reduces uncertainty, respects customer autonomy, and amplifies human sales expertise at the right moments.</p></div>
+          </div>
+
+          <div class="soul-panel" id="soul-modes">
+            <p class="soul-intro">Values express differently in each collaboration mode. Click a card to see its behavioral detail.</p>
+            <div class="soul-mgrid" id="soul-mgrid"></div>
+          </div>
+        </div>
+
+        <script>
+        (function(){
+          var V=[
+            {n:'01',t:'Trust before conversion',s:'Never optimize short-term conversion at the expense of the relationship.',tags:['No fake urgency','No manufactured scarcity','No overpromising'],b:'The most important value. A converted lead who feels manipulated is a worse outcome than a lost lead who felt respected. Never push faster than the prospect is ready to move.',feat:true},
+            {n:'02',t:'Reduce uncertainty — not pressure',s:'Most prospects hesitate from uncertainty, not disinterest.',tags:['Clarity is the service','Honest about unknowns','Advisor over seller'],b:'Clarify next steps without attaching pressure. Surface unknowns honestly, even when inconvenient. Turn the agent from a seller into an advisor.',feat:false},
+            {n:'03',t:'Preserve dignity and agency',s:'The customer always controls the pace and direction.',tags:['Choices not ultimatums','Normalize stepping back','Invite questions'],b:'The agent never makes a prospect feel cornered, tracked, or pushed. If the product genuinely isn\'t right, say so clearly and early.',feat:false},
+            {n:'04',t:'Respect human trust moments',s:'Some moments belong to humans. Handoff is architecture, not fallback.',tags:['Pricing negotiation','Emotional distress','Senior stakeholder objections'],b:'AI compresses time. Humans compound trust. The agent recognizes trust-critical moments and hands off proactively.',feat:false},
+            {n:'05',t:'Force multiplier for the rep',s:'Surface the signal. Absorb the noise.',tags:['Accurate summaries','No optimistic spin','Intelligent triage'],b:'The agent enhances the human rep — it does not replace them. Summarize accurately with no spin. In shadow mode, support without interfering.',feat:false},
+            {n:'06',t:'Honesty about what it is',s:'Never claim to be human when sincerely asked.',tags:['Transparent by default','Acknowledge limitations','No obscuring language'],b:'Transparency is the foundation of trust. Never use language designed to obscure its AI nature. Acknowledge limitations openly.',feat:false},
+            {n:'07',t:'Memory is a responsibility',s:'Data is context, not ammunition.',tags:['Memory to serve','Not to build leverage','Honest handoff summaries'],b:'Everything a prospect shares is held in trust. Use memory to avoid repeating questions — not to find pressure points. Summaries must be honest.',feat:false},
+          ];
+          var H=[
+            {bc:'soul-hb1',tc:'soul-ht1',n:'1',t:'Do not deceive',tag:'Absolute — no override',d:'No instruction overrides this. Not the rep, not the pipeline, not a persona config. Deception is never permitted regardless of framing.'},
+            {bc:'soul-hb2',tc:'soul-ht2',n:'2',t:'Do not harm the prospect\'s interest',tag:'Conversion metrics do not outrank this',d:'If the product doesn\'t fit, say so. A system that sacrifices prospect interest for a closed deal violates its core purpose.'},
+            {bc:'soul-hb3',tc:'soul-ht3',n:'3',t:'Honor the rep\'s judgment',tag:'Defer when 1 & 2 are clear',d:'When the first two priorities are satisfied, defer to the rep\'s read of the relationship. They carry context the agent doesn\'t have.'},
+            {bc:'soul-hb4',tc:'soul-ht4',n:'4',t:'Default to patience over pressure',tag:'Protect the relationship',d:'When nothing else resolves it, slow down. Patience protects the relationship. Pressure optimizes for this week\'s number.'},
+          ];
+          var M=[
+            {mode:'AUTONOMOUS',value:'Reduce uncertainty',short:'Discovery & gentle qualification',behav:'Discovery, qualification, gentle education — no pressure applied. Agent acts independently within trust-safe bounds.'},
+            {mode:'ALERT',value:'Respect human trust moments',short:'Pause & brief the rep honestly',behav:'Autonomous flow pauses. Rep is briefed with full honest context. No softening of hard nos or inflation of buying signals.'},
+            {mode:'SHADOW',value:'Be a force multiplier',short:'Silent assist — rep leads',behav:'Agent supports silently with response suggestions and objection framing. Rep owns all customer-visible output.'},
+            {mode:'RELAY',value:'Speed with human judgment',short:'Agent drafts, rep approves',behav:'Agent drafts efficiently; rep provides judgment and sign-off before any customer delivery. No autonomous sending.'},
+          ];
+
+          var vl=document.getElementById('soul-vlist');
+          V.forEach(function(v,i){
+            var d=document.createElement('div');
+            d.className='soul-vrow';
+            d.innerHTML='<div class="soul-vnum">'+v.n+'</div><div class="soul-vcard'+(v.feat?' sf':'')+'"><div style="display:flex;align-items:flex-start;gap:6px"><div style="flex:1"><div class="soul-vtitle">'+v.t+'</div><div class="soul-vtag">'+v.s+'</div></div><div class="soul-chev" id="sc'+i+'">▾</div></div><div class="soul-vbody" id="sb'+i+'">'+v.b+'<div class="soul-vpills">'+v.tags.map(function(t){return'<span class="soul-vpill">'+t+'</span>'}).join('')+'</div></div></div>';
+            d.onclick=function(){var b=document.getElementById('sb'+i),c=document.getElementById('sc'+i),o=b.classList.contains('so');document.querySelectorAll('.soul-vbody').forEach(function(x){x.classList.remove('so')});document.querySelectorAll('.soul-chev').forEach(function(x){x.classList.remove('so')});if(!o){b.classList.add('so');c.classList.add('so');}};
+            vl.appendChild(d);
+          });
+
+          var hl=document.getElementById('soul-hlist');
+          H.forEach(function(h,i){
+            if(i>0){var co=document.createElement('div');co.style.cssText='display:flex;gap:10px;align-items:center;padding:2px 0';co.innerHTML='<div class="soul-conn"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M5 0v10M1 6l4 4 4-4" stroke="var(--green)" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><div class="soul-ifunres">if unresolved ↓</div>';hl.appendChild(co);}
+            var d=document.createElement('div');d.className='soul-hrow';
+            d.innerHTML='<div class="soul-hbadge '+h.bc+'">'+h.n+'</div><div class="soul-hcard"><div style="display:flex;align-items:flex-start;gap:6px"><div style="flex:1"><div class="soul-htitle '+h.tc+'">'+h.t+'</div><div class="soul-htag">'+h.tag+'</div></div><div class="soul-chev" id="hc'+i+'">▾</div></div><div class="soul-hdesc so" id="hd'+i+'">'+h.d+'</div></div>';
+            d.onclick=function(){var dd=document.getElementById('hd'+i),cc=document.getElementById('hc'+i),o=dd.classList.contains('so');document.querySelectorAll('.soul-hdesc').forEach(function(x){x.classList.remove('so')});document.querySelectorAll('.soul-hrow .soul-chev').forEach(function(x){x.classList.remove('so')});if(!o){dd.classList.add('so');cc.classList.add('so');}};
+            hl.appendChild(d);
+          });
+
+          var mg=document.getElementById('soul-mgrid');
+          M.forEach(function(m,i){
+            var d=document.createElement('div');d.className='soul-mcard';
+            d.innerHTML='<div class="soul-mmode">'+m.mode+'</div><div class="soul-mvalue">'+m.value+'</div><div class="soul-mshort" id="ms'+i+'">'+m.short+'</div><div class="soul-mbehav" id="mb'+i+'">'+m.behav+'</div>';
+            d.onclick=function(){var b=document.getElementById('mb'+i),s=document.getElementById('ms'+i),o=b.classList.contains('so');document.querySelectorAll('.soul-mbehav').forEach(function(x){x.classList.remove('so')});document.querySelectorAll('.soul-mshort').forEach(function(x){x.style.display=''});if(!o){b.classList.add('so');s.style.display='none';}};
+            mg.appendChild(d);
+          });
+        })();
+
+        function soulTab(id,btn){
+          document.querySelectorAll('.soul-panel').forEach(function(p){p.classList.remove('sa')});
+          document.querySelectorAll('.soul-tab').forEach(function(t){t.classList.remove('sa')});
+          document.getElementById('soul-'+id).classList.add('sa');
+          btn.classList.add('sa');
+        }
+        </script>
+      </div>
+    </div>
+  </div>
+
+  <div class="solution-block">
+    <div class="solution-text">
+      <div class="solution-number">02</div>
+      <h3>Psychological Trust State Machine</h3>
+      <p>
+        The architecture shifted from intent → response logic toward emotional state tracking. The system models 8 trust states, including hesitation, objection, evaluation, and commitment, allowing the agent to adapt its posture based on relationship context instead of isolated prompts.
+      </p>
+    </div>
+    <div class="solution-visual">
+      <div class="img-frame" style="background:var(--off-white);padding:0;overflow:hidden">
+        <style>
+          .tsm-wrap{padding:22px 20px 18px;font-family:'DM Sans',sans-serif}
+          .tsm-legend{display:flex;gap:18px;margin-bottom:18px;flex-wrap:wrap}
+          .tsm-leg{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted)}
+          .tsm-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+          .tsm-detail{margin-top:16px;border:1px solid var(--border);border-left:3px solid var(--green);padding:12px 14px;background:var(--card-bg);min-height:70px;transition:opacity .2s}
+          .tsm-detail-state{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--green-dark);margin-bottom:4px}
+          .tsm-detail-posture{font-size:12px;color:var(--ink-mid);line-height:1.65;margin-bottom:4px}
+          .tsm-detail-signal{font-size:11px;color:var(--muted);line-height:1.6}
+          .tsm-hint{font-size:11px;color:var(--muted);font-style:italic}
+        </style>
+        <div class="tsm-wrap">
+          <div class="tsm-legend">
+            <div class="tsm-leg"><div class="tsm-dot" style="background:var(--green)"></div>Forward transition</div>
+            <div class="tsm-leg"><div class="tsm-dot" style="background:var(--sn-navy);border-radius:2px"></div>Off-ramp state</div>
+            <div class="tsm-leg"><div class="tsm-dot" style="background:#D85A30;border-radius:0;width:14px;height:2px"></div>Regression path</div>
+          </div>
+          <svg style="width:100%;overflow:visible" viewBox="0 0 680 590" role="img">
+            <title>Trust state machine — 8 psychological states</title>
+            <desc>Vertical diagram showing the 8 trust states from Awareness to Commitment, with off-ramp Hesitation and Objection states on the left, forward transitions on the main path, and regression arrows back when signals resolve.</desc>
+            <defs>
+              <marker id="tsm-af" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+              <marker id="tsm-ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#D85A30" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+              <marker id="tsm-as" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#6b7f79" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+            </defs>
+            <!-- Forward connectors -->
+            <line x1="340" y1="74" x2="340" y2="105" stroke="#00c853" stroke-width="1.5" marker-end="url(#tsm-af)"/>
+            <line x1="340" y1="149" x2="340" y2="185" stroke="#00c853" stroke-width="1.5" marker-end="url(#tsm-af)"/>
+            <line x1="340" y1="229" x2="340" y2="265" stroke="#00c853" stroke-width="1.5" marker-end="url(#tsm-af)"/>
+            <line x1="340" y1="309" x2="340" y2="345" stroke="#00c853" stroke-width="1.5" marker-end="url(#tsm-af)"/>
+            <line x1="340" y1="389" x2="340" y2="425" stroke="#00c853" stroke-width="1.5" marker-end="url(#tsm-af)"/>
+            <!-- Off-ramp: curiosity → hesitation -->
+            <path d="M230 128 L140 128 L140 148" fill="none" stroke="#6b7f79" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#tsm-as)"/>
+            <!-- Off-ramp: curiosity → objection -->
+            <path d="M230 138 L108 138 L108 228" fill="none" stroke="#6b7f79" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#tsm-as)"/>
+            <!-- Regression: hesitation → curiosity -->
+            <path d="M210 168 L256 168 L256 130 L330 130" fill="none" stroke="#D85A30" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#tsm-ar)"/>
+            <!-- Regression: objection → evaluation -->
+            <path d="M210 248 L270 248 L270 212 L330 212" fill="none" stroke="#D85A30" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#tsm-ar)"/>
+            <!-- AWARENESS -->
+            <g id="tsm-awareness" style="cursor:pointer" onclick="tsmSelect('awareness')">
+              <rect x="230" y="30" width="220" height="44" rx="3" fill="#e8f9ef" stroke="#00c853" stroke-width="1.5"/>
+              <text x="340" y="47" text-anchor="middle" dominant-baseline="central" font-family="DM Sans,sans-serif" font-size="11" font-weight="700" letter-spacing="0.1em" fill="#00a846">AWARENESS</text>
+              <text x="340" y="63" text-anchor="middle" dominant-baseline="central" font-family="DM Sans,sans-serif" font-size="10" fill="#3a4a44">Welcome without agenda</text>
+            </g>
+            <!-- CURIOSITY -->
+            <g id="tsm-curiosity" style="cursor:pointer" onclick="tsmSelect('curiosity')">
+              <rect x="230" y="110" width="220" height="39" rx="3" fill="#e8f9ef" stroke="#00c853" stroke-width="1"/>
+              <text x="340" y="124" text-anchor="middle" dominant-baseline="central" font-family="DM Sans,sans-serif" font-size="11" font-weight="700" letter-spacing="0.1em" fill="#00a846">CURIOSITY</text>
+              <text x="340" y="140" text-anchor="middle" dominant-baseline="central" font-family="DM Sans,sans-serif" font-size="10" fill="#3a4a44">Open questions, no push</text>
+            </g>
+            <!-- HESITATION (off-ramp) -->
+            <g id="tsm-hesitation" style="cursor:pointer" onclick="tsmSelect('hesitation')">
+              <rect x="58" y="148" width="152" height="39" rx="3" fill="#0b1f35" stroke="#0b1f35" stroke-width="1"/>
+              <text x="134" y="162" text-anchor="middle" dominant-baseline="central" font-family="DM Sans,sans-serif" font-size="10" font-weight="700" letter-spacing="0.08em" fill="#00c853">HESITATION</text>
+              <text x="134" y="178" text-anchor="middle" dominant-baseline="central" font-family="DM Sans,sans-serif" font-size="9.5" fill="rgba(255,255,255,0.6)">Normalize the pause</text>
+            </g>
+            <!-- OBJECTION (off-ramp) -->
+            <g id="tsm-objection" style="cursor:pointer" onclick="tsmSelect('objection')">
+              <rect x="58" y="228" width="152" height="39" rx="3" fill="#0b1f35" stroke="#0b1f35" stroke-width="1"/>
+              <text x="134" y="242" text-anchor="middle" dominant-baseline="central" font-family="DM Sans,sans-serif" font-size="10" font-weight="700" letter-spacing="0.08em" fill="#00c853">OBJECTION</text>
+              <text x="134" y="258" text-anchor="middle" dominant-baseline="central" font-family="DM Sans,sans-serif" font-size="9.5" fill="rgba(255,255,255,0.6)">Validate before solving</text>
+            </g>
+            <!-- EVALUATION -->
+            <g id="tsm-evaluation" style="cursor:pointer" onclick="tsmSelect('evaluation')">
+              <rect x="230" y="190" width="220" height="39" rx="3" fill="#e8f9ef" stroke="#00c853" stroke-width="1"/>
+              <text x="340" y="204" text-anchor="middle" dominant-baseline="central" font-family="DM Sans,sans-serif" font-size="11" font-weight="700" letter-spacing="0.1em" fill="#00a846">EVALUATION</text>
+              <text x="340" y="220" text-anchor="middle" dominant-baseline="central" font-family="DM Sans,sans-serif" font-size="10" fill="#3a4a44">Honest comparison support</text>
+            </g>
+            <!-- TRUST_BUILDING -->
+            <g id="tsm-trust_building" style="cursor:pointer" onclick="tsmSelect('trust_building')">
+              <rect x="230" y="270" width="220" height="39" rx="3" fill="#e8f9ef" stroke="#00c853" stroke-width="1"/>
+              <text x="340" y="284" text-anchor="middle" dominant-baseline="central" font-family="DM Sans,sans-serif" font-size="11" font-weight="700" letter-spacing="0.1em" fill="#00a846">TRUST BUILDING</text>
+              <text x="340" y="300" text-anchor="middle" dominant-baseline="central" font-family="DM Sans,sans-serif" font-size="10" fill="#3a4a44">Go deeper, let prospect lead</text>
+            </g>
+            <!-- DECISION_READY -->
+            <g id="tsm-decision_ready" style="cursor:pointer" onclick="tsmSelect('decision_ready')">
+              <rect x="230" y="350" width="220" height="39" rx="3" fill="#e8f9ef" stroke="#00c853" stroke-width="1"/>
+              <text x="340" y="364" text-anchor="middle" dominant-baseline="central" font-family="DM Sans,sans-serif" font-size="11" font-weight="700" letter-spacing="0.1em" fill="#00a846">DECISION READY</text>
+              <text x="340" y="380" text-anchor="middle" dominant-baseline="central" font-family="DM Sans,sans-serif" font-size="10" fill="#3a4a44">Warm handoff — fit confirmed</text>
+            </g>
+            <!-- COMMITMENT (terminal) -->
+            <g id="tsm-commitment" style="cursor:pointer" onclick="tsmSelect('commitment')">
+              <rect x="230" y="430" width="220" height="44" rx="3" fill="#0b1f35" stroke="#00c853" stroke-width="2"/>
+              <text x="340" y="447" text-anchor="middle" dominant-baseline="central" font-family="DM Sans,sans-serif" font-size="11" font-weight="700" letter-spacing="0.1em" fill="#00c853">COMMITMENT</text>
+              <text x="340" y="463" text-anchor="middle" dominant-baseline="central" font-family="DM Sans,sans-serif" font-size="10" fill="rgba(255,255,255,0.65)">Thank without pressure</text>
+            </g>
+            <!-- Right margin: signal labels -->
+            <text x="458" y="93" font-family="DM Sans,sans-serif" font-size="9.5" fill="#6b7f79">intent = "explore"</text>
+            <text x="458" y="172" font-family="DM Sans,sans-serif" font-size="9.5" fill="#6b7f79">trust builds</text>
+            <text x="458" y="252" font-family="DM Sans,sans-serif" font-size="9.5" fill="#6b7f79">trust_score ≥ 0.75</text>
+            <text x="458" y="332" font-family="DM Sans,sans-serif" font-size="9.5" fill="#6b7f79">strong buying signal</text>
+            <text x="458" y="412" font-family="DM Sans,sans-serif" font-size="9.5" fill="#6b7f79">no objection raised</text>
+            <!-- Left margin: off-ramp labels -->
+            <text x="54" y="122" font-family="DM Sans,sans-serif" font-size="9.5" fill="#6b7f79">urgency = low</text>
+            <text x="42" y="215" font-family="DM Sans,sans-serif" font-size="9.5" fill="#6b7f79">objection raised</text>
+            <!-- Regression labels -->
+            <text x="214" y="158" font-family="DM Sans,sans-serif" font-size="9" fill="#D85A30">resolve</text>
+            <text x="214" y="238" font-family="DM Sans,sans-serif" font-size="9" fill="#D85A30">resolve</text>
+          </svg>
+          <div class="tsm-detail" id="tsm-detail-box">
+            <div class="tsm-hint">Click any state to see the agent posture and transition signals</div>
+          </div>
+        </div>
+        <script>
+        (function(){
+          var STATES={
+            awareness:{label:'AWARENESS',posture:'Welcome without agenda — no pitch. First contact. Agent is open and curious, never steering toward close.',signals:'Advance: intent = "explore" → CURIOSITY. No regression path. Entry point only.'},
+            curiosity:{label:'CURIOSITY',posture:'Open questions, no push. Prospect is exploring. Agent reduces uncertainty without directing toward a decision.',signals:'Advance: trust builds → EVALUATION. Off-ramp: urgency = low → HESITATION. Off-ramp: objection raised → OBJECTION.'},
+            hesitation:{label:'HESITATION',posture:'Normalize the pause. Break the path into smaller steps. Patience over pressure — hesitation is signal, not obstacle.',signals:'Regress: resolve = true → back to CURIOSITY. Agent holds position until hesitation clears.'},
+            objection:{label:'OBJECTION',posture:'Validate before solving. Never dismiss. Prospect\'s interest comes first — acknowledge the concern before any response.',signals:'Regress: resolve = true → back to EVALUATION. Objection treated as information, not resistance.'},
+            evaluation:{label:'EVALUATION',posture:'Honest comparison support — name trade-offs. Agent assists evaluation without hiding inconvenient truths.',signals:'Advance: trust_score ≥ 0.75 → TRUST BUILDING. Can receive regression from OBJECTION (resolve).'},
+            trust_building:{label:'TRUST BUILDING',posture:'Go deeper on what\'s useful — let the prospect lead. Trust before conversion at every step.',signals:'Advance: strong_buying_signal = true → DECISION READY. Stable state if signal doesn\'t materialize.'},
+            decision_ready:{label:'DECISION READY',posture:'Warm handoff — but only after fit is confirmed. This moment belongs to a human rep.',signals:'Advance: no objection + urgency not low → COMMITMENT. Stays if objection or low urgency re-emerges.'},
+            commitment:{label:'COMMITMENT',posture:'Thank without pressure — leave the door open. Terminal state. Dignity preserved through the final moment.',signals:'No further transitions. If prospect pulls back, human rep takes over.'}
+          };
+          window.tsmSelect=function(id){
+            var s=STATES[id];if(!s)return;
+            var d=document.getElementById('tsm-detail-box');
+            d.innerHTML='<div class="tsm-detail-state">'+s.label+'</div><div class="tsm-detail-posture">'+s.posture+'</div><div class="tsm-detail-signal">'+s.signals+'</div>';
+            document.querySelectorAll('[id^="tsm-"]').forEach(function(el){
+              if(el.tagName==='g')el.style.opacity=el.id==='tsm-'+id?'1':'0.3';
+            });
+          };
+        })();
+        </script>
+      </div>
+    </div>
+  </div>
+
+  <div class="solution-block">
+    <div class="solution-text">
+      <div class="solution-number">03</div>
+      <h3>Dual Behavior Layer</h3>
+      <p>
+        Customer-facing and rep-facing behaviors were separated into distinct engines. Customers receive trust-paced conversational guidance, while reps receive concise operational briefings, alerts, and actionable summaries.
+      </p>
+    </div>
+
+    <div class="solution-visual">
+      <div class="img-frame">
+        <svg viewBox="0 0 760 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#f9fbfa;" aria-label="Dual Behavior Layer Architecture">
+          <defs>
+            <linearGradient id="cbe-grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#e8f9ef"/>
+              <stop offset="100%" stop-color="#f9fbfa"/>
+            </linearGradient>
+            <linearGradient id="rae-grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#e8f2fb"/>
+              <stop offset="100%" stop-color="#f9fbfa"/>
+            </linearGradient>
+            <linearGradient id="center-grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#0b1f35"/>
+              <stop offset="100%" stop-color="#122840"/>
+            </linearGradient>
+            <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%">
+              <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.08)"/>
+            </filter>
+            <marker id="arrow-green" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#00c853"/>
+            </marker>
+            <marker id="arrow-blue" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#4a9edd"/>
+            </marker>
+          </defs>
+
+          <!-- Left panel background — Customer -->
+          <rect x="0" y="0" width="330" height="480" fill="url(#cbe-grad)"/>
+          <!-- Right panel background — Rep -->
+          <rect x="430" y="0" width="330" height="480" fill="url(#rae-grad)"/>
+          <!-- Center spine -->
+          <rect x="330" y="0" width="100" height="480" fill="url(#center-grad)"/>
+
+          <!-- Divider lines -->
+          <line x1="330" y1="0" x2="330" y2="480" stroke="#00c853" stroke-width="1.5" opacity="0.4"/>
+          <line x1="430" y1="0" x2="430" y2="480" stroke="#4a9edd" stroke-width="1.5" opacity="0.4"/>
+
+          <!-- ── LEFT PANEL: CustomerBehaviorEngine ── -->
+          <!-- Panel label -->
+          <text x="20" y="28" font-family="'Lato',sans-serif" font-size="9" font-weight="700" letter-spacing="0.18em" fill="#00a846" text-transform="uppercase">CUSTOMER LAYER</text>
+          <line x1="20" y1="33" x2="310" y2="33" stroke="#00c853" stroke-width="1" opacity="0.3"/>
+
+          <!-- Engine title box -->
+          <rect x="20" y="44" width="290" height="42" rx="3" fill="#0b1f35" filter="url(#shadow)"/>
+          <text x="165" y="60" font-family="'Lato',sans-serif" font-size="11" font-weight="700" fill="#00c853" text-anchor="middle" letter-spacing="0.06em">CustomerBehaviorEngine</text>
+          <text x="165" y="76" font-family="'DM Sans',sans-serif" font-size="9" fill="rgba(255,255,255,0.5)" text-anchor="middle">generate_response(context, signals)</text>
+
+          <!-- Trust state input -->
+          <rect x="20" y="106" width="130" height="34" rx="3" fill="#fff" stroke="#e0e8e4" stroke-width="1" filter="url(#shadow)"/>
+          <text x="85" y="119" font-family="'DM Sans',sans-serif" font-size="9" font-weight="500" fill="#3a4a44" text-anchor="middle">TrustState</text>
+          <text x="85" y="132" font-family="'DM Sans',sans-serif" font-size="8" fill="#6b7f79" text-anchor="middle">CURIOSITY → COMMITMENT</text>
+
+          <!-- Signals input -->
+          <rect x="160" y="106" width="150" height="34" rx="3" fill="#fff" stroke="#e0e8e4" stroke-width="1" filter="url(#shadow)"/>
+          <text x="235" y="119" font-family="'DM Sans',sans-serif" font-size="9" font-weight="500" fill="#3a4a44" text-anchor="middle">Signal Flags</text>
+          <text x="235" y="132" font-family="'DM Sans',sans-serif" font-size="8" fill="#6b7f79" text-anchor="middle">fit_confirmed · identity_question</text>
+
+          <!-- Arrow down from inputs to dispatcher -->
+          <line x1="165" y1="140" x2="165" y2="158" stroke="#00c853" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+
+          <!-- Dispatcher box -->
+          <rect x="20" y="160" width="290" height="30" rx="3" fill="#e8f9ef" stroke="#00c853" stroke-width="1"/>
+          <text x="165" y="180" font-family="'DM Sans',sans-serif" font-size="9.5" font-weight="500" fill="#00a846" text-anchor="middle">State dispatcher — routes by TrustState</text>
+
+          <!-- Response branches -->
+          <!-- Branch lines from dispatcher -->
+          <line x1="165" y1="190" x2="165" y2="206" stroke="#00c853" stroke-width="1" opacity="0.6"/>
+          <line x1="60" y1="206" x2="290" y2="206" stroke="#00c853" stroke-width="1" opacity="0.4"/>
+
+          <!-- Branch nodes -->
+          <!-- CURIOSITY -->
+          <line x1="60" y1="206" x2="60" y2="220" stroke="#00c853" stroke-width="1" opacity="0.5"/>
+          <rect x="22" y="220" width="76" height="48" rx="3" fill="#fff" stroke="#e0e8e4" stroke-width="1"/>
+          <text x="60" y="234" font-family="'DM Sans',sans-serif" font-size="8" font-weight="600" fill="#00a846" text-anchor="middle">CURIOSITY</text>
+          <text x="60" y="247" font-family="'DM Sans',sans-serif" font-size="7.5" fill="#6b7f79" text-anchor="middle">Open Qs,</text>
+          <text x="60" y="258" font-family="'DM Sans',sans-serif" font-size="7.5" fill="#6b7f79" text-anchor="middle">no pitch</text>
+
+          <!-- HESITATION -->
+          <line x1="115" y1="206" x2="115" y2="220" stroke="#00c853" stroke-width="1" opacity="0.5"/>
+          <rect x="99" y="220" width="76" height="48" rx="3" fill="#fff" stroke="#e0e8e4" stroke-width="1"/>
+          <text x="137" y="234" font-family="'DM Sans',sans-serif" font-size="8" font-weight="600" fill="#00a846" text-anchor="middle">HESITATION</text>
+          <text x="137" y="247" font-family="'DM Sans',sans-serif" font-size="7.5" fill="#6b7f79" text-anchor="middle">Normalize,</text>
+          <text x="137" y="258" font-family="'DM Sans',sans-serif" font-size="7.5" fill="#6b7f79" text-anchor="middle">no pressure</text>
+
+          <!-- OBJECTION -->
+          <line x1="193" y1="206" x2="193" y2="220" stroke="#00c853" stroke-width="1" opacity="0.5"/>
+          <rect x="177" y="220" width="76" height="48" rx="3" fill="#fff" stroke="#e0e8e4" stroke-width="1"/>
+          <text x="215" y="234" font-family="'DM Sans',sans-serif" font-size="8" font-weight="600" fill="#00a846" text-anchor="middle">OBJECTION</text>
+          <text x="215" y="247" font-family="'DM Sans',sans-serif" font-size="7.5" fill="#6b7f79" text-anchor="middle">Validate</text>
+          <text x="215" y="258" font-family="'DM Sans',sans-serif" font-size="7.5" fill="#6b7f79" text-anchor="middle">before solving</text>
+
+          <!-- DECISION_READY -->
+          <line x1="270" y1="206" x2="270" y2="220" stroke="#00c853" stroke-width="1" opacity="0.5"/>
+          <rect x="254" y="220" width="68" height="48" rx="3" fill="#fff" stroke="#e0e8e4" stroke-width="1"/>
+          <text x="288" y="232" font-family="'DM Sans',sans-serif" font-size="7.5" font-weight="600" fill="#00a846" text-anchor="middle">DECISION</text>
+          <text x="288" y="243" font-family="'DM Sans',sans-serif" font-size="7.5" font-weight="600" fill="#00a846" text-anchor="middle">READY</text>
+          <text x="288" y="256" font-family="'DM Sans',sans-serif" font-size="7.5" fill="#6b7f79" text-anchor="middle">fit check</text>
+          <text x="288" y="267" font-family="'DM Sans',sans-serif" font-size="7.5" fill="#6b7f79" text-anchor="middle">gate</text>
+
+          <!-- Guard boxes -->
+          <!-- Identity guard -->
+          <rect x="20" y="288" width="136" height="38" rx="3" fill="#fff7e8" stroke="#f5a623" stroke-width="1"/>
+          <text x="88" y="302" font-family="'DM Sans',sans-serif" font-size="8" font-weight="600" fill="#d4830a" text-anchor="middle">🛡 Identity Guard</text>
+          <text x="88" y="315" font-family="'DM Sans',sans-serif" font-size="7.5" fill="#6b7f79" text-anchor="middle">soul.md value 6 — AI disclosure</text>
+
+          <!-- Fit-check gate -->
+          <rect x="164" y="288" width="146" height="38" rx="3" fill="#fff7e8" stroke="#f5a623" stroke-width="1"/>
+          <text x="237" y="302" font-family="'DM Sans',sans-serif" font-size="8" font-weight="600" fill="#d4830a" text-anchor="middle">🛡 Fit-Check Gate</text>
+          <text x="237" y="315" font-family="'DM Sans',sans-serif" font-size="7.5" fill="#6b7f79" text-anchor="middle">soul.md priority 2 — no premature handoff</text>
+
+          <!-- Output -->
+          <line x1="165" y1="326" x2="165" y2="342" stroke="#00c853" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+          <rect x="20" y="344" width="290" height="34" rx="3" fill="#0b1f35"/>
+          <text x="165" y="360" font-family="'DM Sans',sans-serif" font-size="9" font-weight="500" fill="#fff" text-anchor="middle">Customer-visible response string</text>
+          <text x="165" y="373" font-family="'DM Sans',sans-serif" font-size="8" fill="rgba(255,255,255,0.45)" text-anchor="middle">warm · consultative · no pressure tactics</text>
+
+          <!-- Prospect icon area -->
+          <circle cx="165" cy="430" r="20" fill="#e8f9ef" stroke="#00c853" stroke-width="1.5"/>
+          <text x="165" y="434" font-family="'DM Sans',sans-serif" font-size="18" text-anchor="middle">👤</text>
+          <text x="165" y="456" font-family="'DM Sans',sans-serif" font-size="8" fill="#6b7f79" text-anchor="middle">PROSPECT</text>
+          <line x1="165" y1="378" x2="165" y2="408" stroke="#00c853" stroke-width="1.5" marker-end="url(#arrow-green)" stroke-dasharray="3,2"/>
+
+          <!-- ── CENTER SPINE ── -->
+          <text x="380" y="52" font-family="'DM Sans',sans-serif" font-size="8" font-weight="500" fill="rgba(255,255,255,0.5)" text-anchor="middle" letter-spacing="0.1em">SHARED</text>
+          <text x="380" y="66" font-family="'DM Sans',sans-serif" font-size="8" font-weight="500" fill="rgba(255,255,255,0.5)" text-anchor="middle" letter-spacing="0.1em">CONTEXT</text>
+
+          <!-- LeadContext box -->
+          <rect x="345" y="80" width="70" height="120" rx="3" fill="rgba(0,200,83,0.08)" stroke="rgba(0,200,83,0.3)" stroke-width="1"/>
+          <text x="380" y="98" font-family="'DM Sans',sans-serif" font-size="7.5" font-weight="600" fill="#00c853" text-anchor="middle">Lead</text>
+          <text x="380" y="110" font-family="'DM Sans',sans-serif" font-size="7.5" font-weight="600" fill="#00c853" text-anchor="middle">Context</text>
+          <line x1="360" y1="118" x2="400" y2="118" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+          <text x="380" y="131" font-family="'DM Sans',sans-serif" font-size="7" fill="rgba(255,255,255,0.5)" text-anchor="middle">lead_id</text>
+          <text x="380" y="143" font-family="'DM Sans',sans-serif" font-size="7" fill="rgba(255,255,255,0.5)" text-anchor="middle">lead_score</text>
+          <text x="380" y="155" font-family="'DM Sans',sans-serif" font-size="7" fill="rgba(255,255,255,0.5)" text-anchor="middle">sentiment</text>
+          <text x="380" y="167" font-family="'DM Sans',sans-serif" font-size="7" fill="rgba(255,255,255,0.5)" text-anchor="middle">conv_summary</text>
+          <text x="380" y="179" font-family="'DM Sans',sans-serif" font-size="7" fill="rgba(255,255,255,0.5)" text-anchor="middle">assigned_rep</text>
+          <text x="380" y="191" font-family="'DM Sans',sans-serif" font-size="7" fill="rgba(255,255,255,0.5)" text-anchor="middle">cust_state</text>
+
+          <!-- soul.md label -->
+          <rect x="348" y="220" width="64" height="52" rx="3" fill="rgba(0,200,83,0.05)" stroke="rgba(0,200,83,0.2)" stroke-width="1"/>
+          <text x="380" y="235" font-family="'DM Sans',sans-serif" font-size="7" fill="#00c853" text-anchor="middle" font-weight="600">soul.md</text>
+          <text x="380" y="247" font-family="'DM Sans',sans-serif" font-size="6.5" fill="rgba(255,255,255,0.4)" text-anchor="middle">value constitution</text>
+          <text x="380" y="259" font-family="'DM Sans',sans-serif" font-size="6.5" fill="rgba(255,255,255,0.4)" text-anchor="middle">governs both</text>
+          <text x="380" y="270" font-family="'DM Sans',sans-serif" font-size="6.5" fill="rgba(255,255,255,0.4)" text-anchor="middle">engines</text>
+
+          <!-- Flow arrows center ↔ left / right -->
+          <line x1="330" y1="120" x2="312" y2="120" stroke="rgba(0,200,83,0.5)" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+          <line x1="430" y1="120" x2="448" y2="120" stroke="rgba(74,158,221,0.5)" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+
+          <!-- ── RIGHT PANEL: RepAssistEngine ── -->
+          <text x="450" y="28" font-family="'Lato',sans-serif" font-size="9" font-weight="700" letter-spacing="0.18em" fill="#4a9edd">REP LAYER</text>
+          <line x1="450" y1="33" x2="740" y2="33" stroke="#4a9edd" stroke-width="1" opacity="0.3"/>
+
+          <!-- Engine title box -->
+          <rect x="450" y="44" width="290" height="42" rx="3" fill="#0b1f35" filter="url(#shadow)"/>
+          <text x="595" y="60" font-family="'Lato',sans-serif" font-size="11" font-weight="700" fill="#4a9edd" text-anchor="middle" letter-spacing="0.06em">RepAssistEngine</text>
+          <text x="595" y="76" font-family="'DM Sans',sans-serif" font-size="9" fill="rgba(255,255,255,0.5)" text-anchor="middle">create_alert_brief(context, trigger)</text>
+
+          <!-- Trigger input -->
+          <rect x="450" y="106" width="130" height="34" rx="3" fill="#fff" stroke="#e0e8e4" stroke-width="1" filter="url(#shadow)"/>
+          <text x="515" y="119" font-family="'DM Sans',sans-serif" font-size="9" font-weight="500" fill="#3a4a44" text-anchor="middle">Trigger Signal</text>
+          <text x="515" y="132" font-family="'DM Sans',sans-serif" font-size="8" fill="#6b7f79" text-anchor="middle">frustration · buying_intent…</text>
+
+          <!-- normalize -->
+          <rect x="590" y="106" width="150" height="34" rx="3" fill="#fff" stroke="#e0e8e4" stroke-width="1" filter="url(#shadow)"/>
+          <text x="665" y="119" font-family="'DM Sans',sans-serif" font-size="9" font-weight="500" fill="#3a4a44" text-anchor="middle">_normalize_trigger()</text>
+          <text x="665" y="132" font-family="'DM Sans',sans-serif" font-size="8" fill="#6b7f79" text-anchor="middle">synonym map → canonical key</text>
+
+          <line x1="595" y1="140" x2="595" y2="158" stroke="#4a9edd" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+
+          <!-- Frustration guard -->
+          <rect x="450" y="160" width="290" height="36" rx="3" fill="#fce8e8" stroke="#e05252" stroke-width="1.5"/>
+          <text x="595" y="177" font-family="'DM Sans',sans-serif" font-size="9" font-weight="600" fill="#c0392b" text-anchor="middle">⚡ Frustration Escalation Guard</text>
+          <text x="595" y="190" font-family="'DM Sans',sans-serif" font-size="8" fill="#6b7f79" text-anchor="middle">soul.md priority 2 — immediate human contact, no re-engagement</text>
+
+          <line x1="595" y1="196" x2="595" y2="212" stroke="#4a9edd" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+
+          <!-- AlertBrief -->
+          <rect x="450" y="214" width="290" height="76" rx="3" fill="#fff" stroke="#c8dff4" stroke-width="1" filter="url(#shadow)"/>
+          <text x="595" y="230" font-family="'Lato',sans-serif" font-size="10" font-weight="700" fill="#4a9edd" text-anchor="middle">AlertBrief</text>
+          <line x1="460" y1="235" x2="730" y2="235" stroke="#e0e8e4" stroke-width="1"/>
+          <text x="470" y="248" font-family="'DM Sans',sans-serif" font-size="7.5" fill="#6b7f79">lead_id · lead_score · sentiment</text>
+          <text x="470" y="260" font-family="'DM Sans',sans-serif" font-size="7.5" fill="#6b7f79">recommended_action · urgency_sla</text>
+          <text x="470" y="272" font-family="'DM Sans',sans-serif" font-size="7.5" fill="#6b7f79">summary ← _validate_summary_honesty()</text>
+          <text x="470" y="284" font-family="'DM Sans',sans-serif" font-size="7.5" fill="#3a4a44" font-style="italic">.as_dict() → Slack · CRM · API</text>
+
+          <!-- Honesty validator -->
+          <rect x="450" y="306" width="290" height="38" rx="3" fill="#fff7e8" stroke="#f5a623" stroke-width="1"/>
+          <text x="595" y="320" font-family="'DM Sans',sans-serif" font-size="8" font-weight="600" fill="#d4830a" text-anchor="middle">🛡 Summary Honesty Validator</text>
+          <text x="595" y="332" font-family="'DM Sans',sans-serif" font-size="7.5" fill="#6b7f79" text-anchor="middle">soul.md value 7 — flags spin, hard-no softeners, inflated signals</text>
+
+          <!-- Outputs -->
+          <line x1="595" y1="344" x2="595" y2="360" stroke="#4a9edd" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+          <rect x="450" y="362" width="290" height="34" rx="3" fill="#0b1f35"/>
+          <text x="595" y="378" font-family="'DM Sans',sans-serif" font-size="9" font-weight="500" fill="#fff" text-anchor="middle">Rep-facing output: concise operational brief</text>
+          <text x="595" y="391" font-family="'DM Sans',sans-serif" font-size="8" fill="rgba(255,255,255,0.45)" text-anchor="middle">scan-optimized · SLA-tagged · action-ready</text>
+
+          <!-- Rep icon area -->
+          <circle cx="595" cy="430" r="20" fill="#e8f2fb" stroke="#4a9edd" stroke-width="1.5"/>
+          <text x="595" y="434" font-family="'DM Sans',sans-serif" font-size="18" text-anchor="middle">🧑‍💼</text>
+          <text x="595" y="456" font-family="'DM Sans',sans-serif" font-size="8" fill="#6b7f79" text-anchor="middle">SALES REP</text>
+          <line x1="595" y1="396" x2="595" y2="408" stroke="#4a9edd" stroke-width="1.5" marker-end="url(#arrow-blue)" stroke-dasharray="3,2"/>
+
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="solution-block">
+    <div class="solution-text">
+      <div class="solution-number">04</div>
+      <h3>Human-AI Collaboration Architecture</h3>
+      <p>
+        The system introduced four collaboration modes that determine whether the AI acts autonomously, escalates to a rep, silently supports live sessions, or drafts responses for approval.
+      </p>
+    </div>
+
+    <div class="solution-visual">
+      <div class="img-frame">
+        <svg viewBox="0 0 960 520" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#f9fbfa;" aria-label="Human-AI Collaboration Mode Quadrant">
+          <defs>
+            <linearGradient id="q-auton-bg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#e8f9ef"/>
+              <stop offset="100%" stop-color="#f4fdf7"/>
+            </linearGradient>
+            <linearGradient id="q-alert-bg" x1="1" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#fff2f2"/>
+              <stop offset="100%" stop-color="#fff8f8"/>
+            </linearGradient>
+            <linearGradient id="q-shadow-bg" x1="0" y1="1" x2="1" y2="0">
+              <stop offset="0%" stop-color="#f0f5ff"/>
+              <stop offset="100%" stop-color="#f7f9ff"/>
+            </linearGradient>
+            <linearGradient id="q-relay-bg" x1="1" y1="1" x2="0" y2="0">
+              <stop offset="0%" stop-color="#fdf6e8"/>
+              <stop offset="100%" stop-color="#fdfaf4"/>
+            </linearGradient>
+            <filter id="qs" x="-10%" y="-10%" width="120%" height="130%">
+              <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="rgba(0,0,0,0.07)"/>
+            </filter>
+            <marker id="qa-grn" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+              <path d="M0,0 L7,3.5 L0,7 Z" fill="#00c853"/>
+            </marker>
+            <marker id="qa-red" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+              <path d="M0,0 L7,3.5 L0,7 Z" fill="#e05252"/>
+            </marker>
+          </defs>
+
+          <!-- ── AXIS LABELS ── -->
+          <!-- X axis: Rep Involvement -->
+          <text x="480" y="22" font-family="'Lato',sans-serif" font-size="10" font-weight="700" letter-spacing="0.18em" fill="#6b7f79" text-anchor="middle">REP INVOLVEMENT</text>
+          <text x="148" y="38" font-family="'DM Sans',sans-serif" font-size="9" fill="#b0c0bb" text-anchor="middle">LOW</text>
+          <text x="812" y="38" font-family="'DM Sans',sans-serif" font-size="9" fill="#b0c0bb" text-anchor="middle">HIGH</text>
+          <line x1="60" y1="32" x2="440" y2="32" stroke="#e0e8e4" stroke-width="1" marker-end="url(#qa-grn)" opacity="0.5"/>
+          <line x1="900" y1="32" x2="520" y2="32" stroke="#e0e8e4" stroke-width="1" marker-end="url(#qa-grn)" opacity="0.5"/>
+
+          <!-- Y axis: Trust Sensitivity -->
+          <text x="18" y="280" font-family="'Lato',sans-serif" font-size="10" font-weight="700" letter-spacing="0.18em" fill="#6b7f79" text-anchor="middle" transform="rotate(-90,18,280)">TRUST SENSITIVITY</text>
+          <text x="36" y="102" font-family="'DM Sans',sans-serif" font-size="9" fill="#b0c0bb" text-anchor="middle">HIGH</text>
+          <text x="36" y="462" font-family="'DM Sans',sans-serif" font-size="9" fill="#b0c0bb" text-anchor="middle">LOW</text>
+          <line x1="54" y1="460" x2="54" y2="300" stroke="#e0e8e4" stroke-width="1" marker-end="url(#qa-red)" opacity="0.5"/>
+          <line x1="54" y1="100" x2="54" y2="260" stroke="#e0e8e4" stroke-width="1" marker-end="url(#qa-red)" opacity="0.5"/>
+
+          <!-- ── QUADRANT CELLS ── -->
+
+          <!-- TOP-LEFT: AUTONOMOUS -->
+          <rect x="70" y="50" width="410" height="220" rx="4" fill="url(#q-auton-bg)" stroke="#00c853" stroke-width="1.5"/>
+          <!-- Corner accent -->
+          <rect x="70" y="50" width="410" height="4" rx="2" fill="#00c853"/>
+          <!-- Mode badge -->
+          <rect x="90" y="68" width="110" height="22" rx="3" fill="#0b1f35"/>
+          <text x="145" y="83" font-family="'Lato',sans-serif" font-size="9.5" font-weight="700" letter-spacing="0.14em" fill="#00c853" text-anchor="middle">AUTONOMOUS</text>
+          <!-- Headline -->
+          <text x="90" y="114" font-family="'Lato',sans-serif" font-size="18" font-weight="900" fill="#111c1a" letter-spacing="-0.3px">AI acts independently</text>
+          <!-- Sub -->
+          <text x="90" y="134" font-family="'DM Sans',sans-serif" font-size="11.5" fill="#6b7f79">Rep online but not in live session</text>
+          <!-- Divider -->
+          <line x1="90" y1="148" x2="460" y2="148" stroke="#e0e8e4" stroke-width="1"/>
+          <!-- Condition pills row -->
+          <rect x="90" y="158" width="105" height="20" rx="10" fill="#e8f9ef" stroke="#00c853" stroke-width="1"/>
+          <text x="142" y="172" font-family="'DM Sans',sans-serif" font-size="9" fill="#00a846" text-anchor="middle" font-weight="500">rep_online = true</text>
+          <rect x="204" y="158" width="115" height="20" rx="10" fill="#e8f9ef" stroke="#00c853" stroke-width="1"/>
+          <text x="261" y="172" font-family="'DM Sans',sans-serif" font-size="9" fill="#00a846" text-anchor="middle" font-weight="500">live_session = false</text>
+          <!-- Description -->
+          <text x="90" y="202" font-family="'DM Sans',sans-serif" font-size="11" fill="#3a4a44" line-height="1.7">Discovery, qualification, gentle education.</text>
+          <text x="90" y="218" font-family="'DM Sans',sans-serif" font-size="11" fill="#3a4a44">No pressure applied. Agent operates within</text>
+          <text x="90" y="234" font-family="'DM Sans',sans-serif" font-size="11" fill="#3a4a44">trust-safe bounds independently.</text>
+          <!-- Soul.md value -->
+          <text x="90" y="256" font-family="'DM Sans',sans-serif" font-size="9" fill="#00a846" font-style="italic">soul.md — Reduce uncertainty, not pressure</text>
+
+          <!-- TOP-RIGHT: ALERT -->
+          <rect x="490" y="50" width="410" height="220" rx="4" fill="url(#q-alert-bg)" stroke="#e05252" stroke-width="1.5"/>
+          <rect x="490" y="50" width="410" height="4" rx="2" fill="#e05252"/>
+          <rect x="510" y="68" width="68" height="22" rx="3" fill="#0b1f35"/>
+          <text x="544" y="83" font-family="'Lato',sans-serif" font-size="9.5" font-weight="700" letter-spacing="0.14em" fill="#e05252" text-anchor="middle">ALERT</text>
+          <text x="510" y="114" font-family="'Lato',sans-serif" font-size="18" font-weight="900" fill="#111c1a" letter-spacing="-0.3px">Escalate to rep now</text>
+          <text x="510" y="134" font-family="'DM Sans',sans-serif" font-size="11.5" fill="#6b7f79">Handoff triggered — trust-critical moment</text>
+          <line x1="510" y1="148" x2="880" y2="148" stroke="#e0e8e4" stroke-width="1"/>
+          <!-- Condition pills -->
+          <rect x="510" y="158" width="130" height="20" rx="10" fill="#fff0f0" stroke="#e05252" stroke-width="1"/>
+          <text x="575" y="172" font-family="'DM Sans',sans-serif" font-size="9" fill="#c0392b" text-anchor="middle" font-weight="500">handoff_triggered = true</text>
+          <!-- Description -->
+          <text x="510" y="202" font-family="'DM Sans',sans-serif" font-size="11" fill="#3a4a44">Autonomous flow pauses. Rep is briefed</text>
+          <text x="510" y="218" font-family="'DM Sans',sans-serif" font-size="11" fill="#3a4a44">with full honest context — no softening</text>
+          <text x="510" y="234" font-family="'DM Sans',sans-serif" font-size="11" fill="#3a4a44">of hard nos or inflated buying signals.</text>
+          <text x="510" y="256" font-family="'DM Sans',sans-serif" font-size="9" fill="#e05252" font-style="italic">soul.md — Respect human trust moments</text>
+          <!-- Priority badge -->
+          <rect x="820" y="64" width="62" height="20" rx="3" fill="#fce8e8" stroke="#e05252" stroke-width="1"/>
+          <text x="851" y="78" font-family="'DM Sans',sans-serif" font-size="8.5" fill="#c0392b" text-anchor="middle" font-weight="700">⚡ PRIORITY 2</text>
+
+          <!-- BOTTOM-LEFT: SHADOW -->
+          <rect x="70" y="280" width="410" height="220" rx="4" fill="url(#q-shadow-bg)" stroke="#4a7fd4" stroke-width="1.5"/>
+          <rect x="70" y="280" width="410" height="4" rx="2" fill="#4a7fd4"/>
+          <rect x="90" y="298" width="88" height="22" rx="3" fill="#0b1f35"/>
+          <text x="134" y="313" font-family="'Lato',sans-serif" font-size="9.5" font-weight="700" letter-spacing="0.14em" fill="#7ab0f0" text-anchor="middle">SHADOW</text>
+          <text x="90" y="344" font-family="'Lato',sans-serif" font-size="18" font-weight="900" fill="#111c1a" letter-spacing="-0.3px">Silent support — rep leads</text>
+          <text x="90" y="364" font-family="'DM Sans',sans-serif" font-size="11.5" fill="#6b7f79">Active live session with rep present</text>
+          <line x1="90" y1="378" x2="460" y2="378" stroke="#e0e8e4" stroke-width="1"/>
+          <!-- Condition pills -->
+          <rect x="90" y="388" width="105" height="20" rx="10" fill="#eef3ff" stroke="#4a7fd4" stroke-width="1"/>
+          <text x="142" y="402" font-family="'DM Sans',sans-serif" font-size="9" fill="#3a6dbb" text-anchor="middle" font-weight="500">rep_online = true</text>
+          <rect x="204" y="388" width="115" height="20" rx="10" fill="#eef3ff" stroke="#4a7fd4" stroke-width="1"/>
+          <text x="261" y="402" font-family="'DM Sans',sans-serif" font-size="9" fill="#3a6dbb" text-anchor="middle" font-weight="500">live_session = true</text>
+          <!-- Description -->
+          <text x="90" y="432" font-family="'DM Sans',sans-serif" font-size="11" fill="#3a4a44">Agent suggests responses and objection</text>
+          <text x="90" y="448" font-family="'DM Sans',sans-serif" font-size="11" fill="#3a4a44">framing silently. Rep owns all customer-</text>
+          <text x="90" y="464" font-family="'DM Sans',sans-serif" font-size="11" fill="#3a4a44">visible output. AI amplifies, not replaces.</text>
+          <text x="90" y="484" font-family="'DM Sans',sans-serif" font-size="9" fill="#4a7fd4" font-style="italic">soul.md — Force multiplier for the rep</text>
+
+          <!-- BOTTOM-RIGHT: RELAY -->
+          <rect x="490" y="280" width="410" height="220" rx="4" fill="url(#q-relay-bg)" stroke="#d4920a" stroke-width="1.5"/>
+          <rect x="490" y="280" width="410" height="4" rx="2" fill="#d4920a"/>
+          <rect x="510" y="298" width="72" height="22" rx="3" fill="#0b1f35"/>
+          <text x="546" y="313" font-family="'Lato',sans-serif" font-size="9.5" font-weight="700" letter-spacing="0.14em" fill="#e8aa3a" text-anchor="middle">RELAY</text>
+          <text x="510" y="344" font-family="'Lato',sans-serif" font-size="18" font-weight="900" fill="#111c1a" letter-spacing="-0.3px">Draft, then approve</text>
+          <text x="510" y="364" font-family="'DM Sans',sans-serif" font-size="11.5" fill="#6b7f79">Awaiting rep approval before delivery</text>
+          <line x1="510" y1="378" x2="880" y2="378" stroke="#e0e8e4" stroke-width="1"/>
+          <!-- Condition pill -->
+          <rect x="510" y="388" width="145" height="20" rx="10" fill="#fef5e4" stroke="#d4920a" stroke-width="1"/>
+          <text x="582" y="402" font-family="'DM Sans',sans-serif" font-size="9" fill="#a06800" text-anchor="middle" font-weight="500">awaiting_approval = true</text>
+          <!-- Description -->
+          <text x="510" y="432" font-family="'DM Sans',sans-serif" font-size="11" fill="#3a4a44">Agent drafts responses efficiently; rep</text>
+          <text x="510" y="448" font-family="'DM Sans',sans-serif" font-size="11" fill="#3a4a44">provides judgment and sign-off before</text>
+          <text x="510" y="464" font-family="'DM Sans',sans-serif" font-size="11" fill="#3a4a44">any customer-visible delivery. No auto-send.</text>
+          <text x="510" y="484" font-family="'DM Sans',sans-serif" font-size="9" fill="#d4920a" font-style="italic">soul.md — Speed with human judgment</text>
+
+          <!-- ── CENTER CROSSHAIR ── -->
+          <!-- Vertical center line -->
+          <line x1="480" y1="50" x2="480" y2="500" stroke="#0b1f35" stroke-width="1.5" opacity="0.12" stroke-dasharray="4,3"/>
+          <!-- Horizontal center line -->
+          <line x1="70" y1="270" x2="900" y2="270" stroke="#0b1f35" stroke-width="1.5" opacity="0.12" stroke-dasharray="4,3"/>
+
+          <!-- Center intersection node -->
+          <circle cx="480" cy="270" r="18" fill="#0b1f35"/>
+          <circle cx="480" cy="270" r="14" fill="#0b1f35" stroke="#00c853" stroke-width="1.5"/>
+          <text x="480" y="265" font-family="'DM Sans',sans-serif" font-size="7" fill="#00c853" text-anchor="middle" font-weight="700">MODE</text>
+          <text x="480" y="276" font-family="'DM Sans',sans-serif" font-size="7" fill="#00c853" text-anchor="middle" font-weight="700">STATE</text>
+
+          <!-- ── TRANSITION ARROWS ── -->
+          <!-- AUTONOMOUS → ALERT (rep triggers handoff) -->
+          <path d="M480 160 Q480 220 480 258" stroke="#e05252" stroke-width="1" fill="none" stroke-dasharray="3,2" opacity="0.5" marker-end="url(#qa-red)"/>
+          <text x="470" y="46" font-family="'DM Sans',sans-serif" font-size="8" fill="#e05252" opacity="0.7">handoff</text>
+
+          <!-- AUTONOMOUS → SHADOW (live session starts) -->
+          <path d="M275 270 Q275 280 275 278" stroke="#4a7fd4" stroke-width="1" fill="none" opacity="0.4" marker-end="url(#qa-grn)"/>
+
+          <!-- Offline edge case note -->
+          <rect x="376" y="497" width="208" height="18" rx="3" fill="rgba(0,0,0,0)" />
+          <text x="480" y="511" font-family="'DM Sans',sans-serif" font-size="9" fill="#6b7f79" text-anchor="middle">rep_offline → AUTONOMOUS override (any mode)</text>
+
+        </svg>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<div class="section-divider"></div>
+
+<section class="section" id="testing">
+  <div class="section-label">Testing</div>
+  <h2 class="section-title">
+    Validating values,<br>
+    not just logic
+  </h2>
+
+  <p class="section-body">
+    Beyond unit testing, the project introduced behavioral compliance testing to verify that the agent's responses never violated soul.md principles.
+  </p>
+
+  <div class="evo-steps">
+
+    <div class="evo-step">
+      <div class="evo-step-header">
+        <div class="evo-step-num">01</div>
+        <div class="evo-step-title">Behavior Compliance Tests</div>
+      </div>
+
+      <p>
+        Behavior tests validated identity honesty, no-pressure language, frustration escalation rules, and fit-confirmation gating.
+      </p>
+
+      <div style="margin-top:28px" class="img-frame">
+        <div class="placeholder">
+          <h4>Placeholder — pytest output</h4>
+          <p>
+            Replace with screenshot of passing pytest suite and readable behavior test names.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="evo-step">
+      <div class="evo-step-header">
+        <div class="evo-step-num">02</div>
+        <div class="evo-step-title">Extractor Gap Log</div>
+      </div>
+
+      <p>
+        Manual persona testing surfaced gaps between human interpretation and keyword extraction logic. These gaps became the specification for the next LLM-based extractor iteration.
+      </p>
+
+      <div style="margin-top:28px" class="img-frame">
+        <div class="placeholder">
+          <h4>Placeholder — Extractor Gap Table</h4>
+          <p>
+            Replace with visual table showing expected signals, actual signals, and soul.md impact.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<section class="section" id="impact">
+  <div class="section-label">Impact</div>
+  <h2 class="section-title">
+    From conversational UI<br>
+    to behavioral infrastructure
+  </h2>
+
+  <p class="section-body">
+    The project demonstrated a new AI design methodology centered around values, escalation logic, emotional modeling, and human collaboration.
+  </p>
+
+  <div class="impact-grid">
+
+    <div class="impact-item">
+      <div class="impact-value">8</div>
+      <div>
+        Psychological trust states modeled with forward and regression paths.
+      </div>
+    </div>
+
+    <div class="impact-item">
+      <div class="impact-value">4</div>
+      <div>
+        Human-AI collaboration modes supporting escalation and live rep assistance.
+      </div>
+    </div>
+
+    <div class="impact-item">
+      <div class="impact-value">50+</div>
+      <div>
+        Unit, behavior, persona, and collaboration tests validating both logic and values.
+      </div>
+    </div>
+
+  </div>
+
+  <div class="reflection-block">
+    <p>
+      “The most important design decisions in this project were invisible to the interface. The real UX work happened inside the system — defining what the agent believes, how it behaves under pressure, and when it should step back for a human.”
+    </p>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<section class="section" id="reflection">
+  <div class="section-label">Reflection</div>
+  <h2 class="section-title">
+    The designer's role is shifting<br>
+    from interface designer to value architect
+  </h2>
+
+  <p class="section-body">
+    This project reframed AI UX as behavioral system design rather than conversational interface design. The most important deliverables were not screens, but value hierarchies, trust models, escalation logic, and behavioral QA frameworks. As AI systems become more autonomous, the designer's responsibility increasingly moves upstream — shaping how systems behave under ambiguity, emotion, and trust-sensitive conditions.
+  </p>
+</section>
+
+<!-- ══════════════ FOOTER ══════════════ -->
+<footer class="site-footer">
+  <div class="footer-center">
+    <div class="foot-brand">Lead Intelligence Agent · Self-Directed Project</div>
+    <p>Yi Feng Design · UX Case Study · 2025</p>
+  </div>
+
+  <a class="proj-nav next" href="Partner_Quality_updated.html">
+    <span class="proj-nav-label">Next →</span>
+    <span class="proj-nav-title">Partner Quality</span>
+  </a>
+</footer>
+
+<script>
+const progress = document.getElementById('progress');
+
+window.addEventListener('scroll', () => {
+  const total = document.documentElement.scrollHeight - window.innerHeight;
+  progress.style.width = (window.scrollY / total * 100) + '%';
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,101 @@
+﻿Portfolio
+
+
+Background
+
+
+As ServiceNow expanded its partner ecosystem, the Partner Digital Transformation team identified a critical gap in how partner-facing teams managed relationships, workflows, and performance metrics. While internal sales teams relied on tools like My ServiceNow, Dynamics CRM, Power BI, and Tableau to manage deal cycles and visualize data, these systems were optimized for direct sales workflows—not the operational complexity of managing partnerships.
+
+
+To address this gap, the team launched the PRM Workspace—an administrative control system that enables Partner Managers, Territory Partner Managers, Operations, and Leadership to make consistent, defensible decisions across the partner lifecycle.
+
+
+PRM’s goal: Create a unified system that improves observability, predictability, and governance of the partner ecosystem—enabling earlier intervention and alignment around shared signals rather than subjective judgment.
+My Role & Team
+
+
+I led the end-to-end UX design for Partner Quality, shaping it into a decision-support layer within PRM—from research synthesis and system framing to information architecture, interaction design, and prototyping. I collaborated with Product, Research, and Engineering to align on governance decisions and translate partner performance data into actionable signals.
+Design Constraint
+
+
+The Partner Quality workflow had to balance system ambition with enterprise constraints:
+* Speed vs. platform performance
+* Real-time signal aggregation vs. API latency
+* Flexibility vs. design system governance
+* Cross-functional alignment vs. 8-week delivery pressure
+
+
+Partner Quality — Design Solutions
+
+
+1. Portfolio-Level Decision Surface (Lifecycle-Based Framing)
+
+
+Partner risk was visible but lacked lifecycle context, making it difficult for PMs to know when intervention mattered most. We reframed Partner Quality as a portfolio-level decision surface, organizing signals around pre-sale and post-sale partner lifecycle stages and summarizing partner capability into a simple Experience State. This shifted Partner Quality from a static dashboard to a situational awareness layer, helping PMs and leadership quickly identify where attention and intervention are needed.
+
+
+
+
+2.Decision-Relevant Driver Tags (Perspective-Based Risk Understanding)
+
+
+Even with lifecycle framing, PMs still needed a faster way to understand why a partner was flagged without interpreting multiple metrics. We introduced Partner Quality Driver Tags—plain-language labels that translate underlying signals into recognizable risk patterns (e.g., opportunity risk, delivery gaps, experience limitations). These tags provide multiple decision perspectives across sales, delivery, and partner capability, helping PMs quickly prioritize where attention is needed without adding new alerts or UI complexity.
+
+
+
+
+3.From Feature-Level Alerts to System-Level Decision Triggers
+
+
+Alerts buried within Partner Quality often surfaced too late to influence key decisions. We reframed alerts as decision triggers and elevated them to PRM Home, the daily orientation layer for Partner Managers. This shift surfaces critical signals before opportunity commitment or delivery execution, turning alerts from passive notifications into early indicators that shape cross-workflow decisions.
+
+
+4. Consistent PRM Interaction Framework (Orient → Diagnose → Act)
+
+
+Deep drill-downs and external filtering created latency, cognitive friction, and fragmented navigation. We introduced a consistent PRM interaction framework across all Level-1 sections, separating orientation from diagnosis: landing pages surface signals for prioritization, list views support fast investigation, and record views enable object-level actions. This structure preserves a clear Orient → Diagnose → Act decision flow while improving performance and navigation consistency across PRM.
+
+
+Impact
+Design Process Highlights — From Visibility to Decision Support
+1. Intent alignment → Clarifying what value PRM needed to deliver
+
+
+We began with a cross-functional workshop involving Partner Managers, Partner Success, and Operations stakeholders to align on what value PRM should provide and what unmet needs existed in partner management workflows.
+
+
+At this stage, conversations focused on:
+* Lack of visibility into partner health
+* Difficulty identifying experience deficits
+* Inconsistent signals across CRM, enablement, and operational tools
+
+
+
+
+2. Metric discovery → Identifying how partner health was currently evaluated
+We then worked closely with the Partner Success team to identify the key metrics used to assess partner readiness and experience deficits, including:
+* Implementation opportunity risk (ACV)
+* Deployment type and complexity
+* Partner experience maturity indicators (LAC %, CSAT, PLA)
+
+
+At this point, the working assumption was that consolidating these metrics clearly would enable Partner Managers to evaluate partner health more effectively.
+
+
+3. Initial design direction → Dashboard-first thinking
+With requirements and metrics defined, I moved into design exploration focused on:
+* Clear visualization of partner health data
+* Lifecycle-based grouping of metrics
+* Alerting patterns to surface risks early
+
+
+This resulted in a dashboard-oriented solution that emphasized visibility, monitoring, and alerts.
+While the design successfully reduced data fragmentation, early feedback revealed an unexpected outcome:
+Partner Managers experienced alert fatigue and continued to treat Partner Quality as “another dashboard” rather than a tool that changed how they made decisions.
+4.From User Insights to System Design Decisions
+
+
+Usability testing revealed that the real issue was not lack of visibility, but difficulty interpreting and acting on signals quickly. Users struggled with navigation discoverability, excessive click depth, unclear filters, and missing alerts for opportunity movement.
+
+
+Looking beyond interface issues, we reframed the problem using first-principle system thinking: Partner Quality should not function as a reporting dashboard, but as a decision-support surface that helps Partner Managers intervene at the right moment.

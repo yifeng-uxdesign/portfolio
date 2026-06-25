@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="yi feng portfolios">
+    <meta name="generator" content="Jekyll v4.1.1">
+    <title>Yi Feng- portfolios</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/4.5/examples/cover/">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:wght@600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:wght@600&family=Varela+Round&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Taviraj:wght@500&display=swap" rel="stylesheet">
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/cover%20copy.css" rel="stylesheet">
+    <link href="css/hover.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://kit.fontawesome.com/831438efe9.js" crossorigin="anonymous"></script>
+
+    <style>
+      /* ── Page fade-out on transition ── */
+      body {
+        transition: opacity 0.6s ease;
+      }
+      body.fade-out {
+        opacity: 0;
+      }
+
+      /* ── Password modal overlay ── */
+      #password-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        z-index: 200;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      #password-overlay.visible {
+        display: flex;
+        opacity: 0;
+      }
+      #password-overlay.show {
+        opacity: 1;
+      }
+
+      /* ── Password card ── */
+      #password-card {
+        background: #ffffff;
+        border: none;
+        border-radius: 20px;
+        padding: 2.5rem 3rem;
+        text-align: center;
+        max-width: 380px;
+        width: 90%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), 0 4px 16px rgba(0, 0, 0, 0.15);
+        transform: translateY(20px);
+        transition: transform 0.35s ease, opacity 0.35s ease;
+        opacity: 0;
+      }
+      #password-overlay.show #password-card {
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      #password-card h5 {
+        margin-bottom: 0.4rem;
+        font-weight: 700;
+        font-size: 1.15rem;
+        color: #1a1a1a;
+      }
+      #password-card p.hint {
+        font-size: 0.85rem;
+        color: #888;
+        margin-bottom: 1.5rem;
+      }
+
+      /* ── Lock icon ── */
+      .pw-lock-icon {
+        font-size: 1.6rem;
+        margin-bottom: 0.75rem;
+        color: #555;
+      }
+
+      /* ── Input field ── */
+      #pw-input {
+        width: 100%;
+        padding: 0.7rem 1rem;
+        border-radius: 10px;
+        border: 1.5px solid #ddd;
+        background: #f8f8f8;
+        color: #1a1a1a;
+        font-size: 1rem;
+        outline: none;
+        text-align: center;
+        letter-spacing: 0.1em;
+        transition: border-color 0.2s ease, background 0.2s ease;
+        margin-bottom: 0.75rem;
+      }
+      #pw-input::placeholder {
+        color: #bbb;
+        letter-spacing: normal;
+      }
+      #pw-input:focus {
+        border-color: #3b82f6;
+        background: #fff;
+      }
+      #pw-input.error {
+        border-color: #ef4444;
+        animation: shake 0.35s ease;
+      }
+
+      /* ── Error message ── */
+      #pw-error {
+        font-size: 0.78rem;
+        color: #ef4444;
+        min-height: 1.2em;
+        margin-bottom: 0.75rem;
+        display: none;
+      }
+      #pw-error.show {
+        display: block;
+      }
+
+      /* ── Submit button — solid blue ── */
+      #pw-submit {
+        width: 100%;
+        padding: 0.7rem 1rem;
+        border-radius: 10px;
+        border: none;
+        background: #3b82f6;
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.1s ease;
+        margin-bottom: 0.9rem;
+        letter-spacing: 0.02em;
+      }
+      #pw-submit:hover {
+        background: #2563eb;
+      }
+      #pw-submit:active {
+        transform: scale(0.98);
+      }
+
+      /* ── Cancel link ── */
+      #pw-cancel {
+        font-size: 0.8rem;
+        color: #aaa;
+        cursor: pointer;
+        text-decoration: underline;
+        background: none;
+        border: none;
+        padding: 0;
+      }
+      #pw-cancel:hover {
+        color: #666;
+      }
+
+      /* ── Shake animation for wrong password ── */
+      @keyframes shake {
+        0%   { transform: translateX(0); }
+        20%  { transform: translateX(-8px); }
+        40%  { transform: translateX(8px); }
+        60%  { transform: translateX(-5px); }
+        80%  { transform: translateX(5px); }
+        100% { transform: translateX(0); }
+      }
+
+      /* ── Success checkmark ── */
+      #pw-success {
+        display: none;
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        color: #3b82f6;
+        animation: pop 0.4s ease;
+      }
+      #pw-success.show {
+        display: block;
+      }
+      #pw-success-state h5 {
+        color: #1a1a1a;
+      }
+      #pw-success-state p.hint {
+        color: #888;
+      }
+      @keyframes pop {
+        0%   { transform: scale(0.5); opacity: 0; }
+        70%  { transform: scale(1.2); opacity: 1; }
+        100% { transform: scale(1); }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="d-flex w-100 h-100 flex-column">
+
+      <header class="container-fluid masthead mb-5 mt-5">
+        <div>
+          <a class="navbar-brand masthead-brand logo" href="index_v2.html">
+            <img id="logo" src="Images/logo.png" width="32" height="32" class="d-inline-block" alt="">
+            <span id="style"><b>Yi Feng</b></span>
+          </a>
+          <nav class="nav nav-masthead justify-content-center">
+            <a class="nav-link" href="index_v2.html">Home</a>
+            <a class="nav-link" href="index_v2.html">Work</a>
+            <a class="nav-link" href="About_Me.html">About Me</a>
+          </nav>
+        </div>
+      </header>
+
+      <main role="main">
+        <div class="container-fluid d-flex align-items-center flex-column mt-5 mb-5">
+          <h1 class="mb-4">Hi, I'm Yi.</h1>
+          <p class="style text-center">I design AI agents and the systems that make them trustworthy. My background spans enterprise SaaS UX at ServiceNow and Harness — growth, dashboards, agentic workflows — but my current focus is agent design end-to-end: the behavior layers, value constitutions, and escalation logic that govern how agents act, and the interfaces that make human-AI collaboration visible and controllable. Want to know more about the person behind the work? <a href="About%20Me.html">Visit my About Me page →</a></p>
+        </div>
+
+        <div class="d-flex justify-content-center nav-sociallink mb-5">
+          <ul class="iconpack">
+            <li class="icons"><a class="icon" href="https://www.linkedin.com/in/yi-feng/"><i class="fab fa-linkedin"></i></a></li>
+            <li class="icons"><a class="icon" href="mailto:annefeng68+jobs@gmail.com"><i class="fas fa-envelope"></i></a></li>
+            <li class="icons"><a class="icon" href="https://github.com/yi-design" target="_blank"><i class="fab fa-github"></i></a></li>
+          </ul>
+        </div>
+
+        <div class="d-flex justify-content-center mb-5 pb-5">
+          <div>
+            <!-- Clicking this opens the password modal instead of navigating -->
+            <button onclick="openPasswordModal()" class="hvr-icon-forward btn btn-outline-light">
+              <b class="button">View Feature Work</b> <i class="fa fa-arrow-right hvr-icon"></i>
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <footer class="container-fluid d-flex justify-content-center mt-5 pt-5">Yi Feng Design by BootStrap&copy; Copyright 2025</footer>
+
+      <script src="zenscroll-min.js"></script>
+    </div>
+
+    <!-- ── Password Overlay ── -->
+    <div id="password-overlay">
+      <div id="password-card">
+        <!-- Default state: input form -->
+        <div id="pw-form-state">
+          <div class="pw-lock-icon"><i class="fas fa-lock"></i></div>
+          <h5>This work is protected</h5>
+          <p class="hint">Enter the password to view the case studies.</p>
+          <input
+            id="pw-input"
+            type="password"
+            placeholder="Password"
+            autocomplete="off"
+            onkeydown="if(event.key==='Enter') submitPassword()"
+          />
+          <div id="pw-error">Incorrect password. Please try again.</div>
+          <button id="pw-submit" onclick="submitPassword()">Unlock</button>
+          <br>
+          <button id="pw-cancel" onclick="closePasswordModal()">Cancel</button>
+        </div>
+
+        <!-- Success state: shown briefly before redirect -->
+        <div id="pw-success-state" style="display:none;">
+          <div id="pw-success">✓</div>
+          <h5>Welcome!</h5>
+          <p class="hint">Taking you there now…</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // If already authenticated this session, skip the password page entirely
+      if (sessionStorage.getItem('authenticated') === 'true') {
+        window.location.replace('feature_work.html');
+      }
+    
+      const CORRECT_PASSWORD = 'wahaha';
+    
+      function openPasswordModal() {
+        const overlay = document.getElementById('password-overlay');
+        overlay.style.display = 'flex';
+        overlay.offsetHeight;
+        overlay.classList.add('visible', 'show');
+        setTimeout(() => document.getElementById('pw-input').focus(), 350);
+      }
+    
+      function closePasswordModal() {
+        const overlay = document.getElementById('password-overlay');
+        overlay.classList.remove('show');
+        setTimeout(() => {
+          overlay.classList.remove('visible');
+          overlay.style.display = 'none';
+          resetForm();
+        }, 300);
+      }
+    
+      function resetForm() {
+        document.getElementById('pw-input').value = '';
+        document.getElementById('pw-input').classList.remove('error');
+        document.getElementById('pw-error').classList.remove('show');
+        document.getElementById('pw-form-state').style.display = 'block';
+        document.getElementById('pw-success-state').style.display = 'none';
+      }
+    
+      function submitPassword() {
+        const input = document.getElementById('pw-input');
+        const error = document.getElementById('pw-error');
+    
+        if (input.value === CORRECT_PASSWORD) {
+          // Mark as authenticated for this browser session
+          sessionStorage.setItem('authenticated', 'true');
+    
+          document.getElementById('pw-form-state').style.display = 'none';
+          document.getElementById('pw-success-state').style.display = 'block';
+          document.getElementById('pw-success').classList.add('show');
+    
+          setTimeout(() => {
+            document.body.classList.add('fade-out');
+            setTimeout(() => {
+              window.location.href = 'feature_work.html#feature-work';
+            }, 650);
+          }, 800);
+    
+        } else {
+          input.classList.remove('error');
+          error.classList.remove('show');
+          input.offsetHeight;
+          input.classList.add('error');
+          error.classList.add('show');
+          input.value = '';
+          setTimeout(() => input.classList.remove('error'), 400);
+        }
+      }
+    
+      document.getElementById('password-overlay').addEventListener('click', function(e) {
+        if (e.target === this) closePasswordModal();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Orchestrating User Growth in the Harness PLG Journey — Yi Feng</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,300&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --white:         #ffffff;
+    --off-white:     #f5f7f8;
+    --cyan:          #00b4d8;
+    --cyan-dark:     #0096c7;
+    --cyan-pale:     #e6f7fb;
+    --cyan-mid:      rgba(0,180,216,0.12);
+    --harness-blue:  #0d2b6b;
+    --ink:           #111827;
+    --ink-mid:       #374151;
+    --muted:         #6b7280;
+    --border:        #e5e7eb;
+    --border-strong: rgba(0,180,216,0.25);
+    --card-bg:       #f9fafb;
+    --hero-dark:     #0a1628;
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--white);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--off-white); }
+  ::-webkit-scrollbar-thumb { background: var(--cyan); border-radius: 2px; }
+
+  /* ── PORTFOLIO NAV ── */
+  .portfolio-nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 48px; height: 64px;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .pnav-logo {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none; color: var(--ink);
+  }
+  .pnav-logo img { height: 32px; width: auto; }
+  .pnav-logo span {
+    font-family: 'Lato', sans-serif; font-weight: 700;
+    font-size: 16px; color: var(--ink); letter-spacing: -0.3px;
+  }
+  .pnav-links { display: flex; gap: 32px; }
+  .pnav-links a {
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+    color: var(--ink-mid); text-decoration: none; letter-spacing: 0.01em;
+    transition: color 0.2s; position: relative;
+  }
+  .pnav-links a::after {
+    content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px;
+    background: var(--cyan); transform: scaleX(0); transform-origin: left;
+    transition: transform 0.25s ease; border-radius: 1px;
+  }
+  .pnav-links a:hover { color: var(--cyan-dark); }
+  .pnav-links a:hover::after { transform: scaleX(1); }
+
+  /* ── PROGRESS BAR ── */
+  #progress {
+    position: fixed; top: 64px; left: 0; height: 2px;
+    background: var(--cyan); z-index: 300; width: 0%;
+    transition: width 0.1s linear;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex; align-items: stretch;
+    padding-top: 64px; /* clear fixed nav */
+    position: relative; overflow: hidden;
+    background: #0A3364;
+  }
+  .hero-bg-img { display: none; }
+  .hero-bg-overlay { display: none; }
+
+  /* Two-column inner wrapper */
+  .hero-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    min-height: calc(100vh - 64px);
+  }
+
+  /* LEFT — text content, vertically centered */
+  .hero-content {
+    position: relative; z-index: 2;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 80px 56px 80px 64px;
+    max-width: none;
+  }
+
+  /* RIGHT — graphic, fills the column, fades left edge into bg */
+  .hero-graphic {
+    position: relative; z-index: 2;
+    display: flex; align-items: center;
+    overflow: hidden;
+    opacity: 0;
+    animation: fadeIn 1s ease 0.2s forwards;
+  }
+  .hero-graphic img {
+    width: 100%; height: 100%;
+    object-fit: contain; object-position: left center;
+    display: block;
+    /* fade left edge so it merges with the background */
+    mask-image: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 18%, rgba(0,0,0,1) 100%);
+    -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 18%, rgba(0,0,0,1) 100%);
+  }
+
+  /* Harness SVG logo above eyebrow */
+  .hero-brand {
+    display: block; margin-bottom: 24px;
+    opacity: 0; animation: fadeIn 0.8s ease 0.1s forwards;
+  }
+  .hero-brand img {
+    height: 40px; width: auto; display: block;
+  }
+
+  .hero-eyebrow {
+    font-size: 11px; font-weight: 500; letter-spacing: 0.2em;
+    color: var(--cyan); text-transform: uppercase; margin-bottom: 24px;
+    opacity: 0; transform: translateY(20px);
+    animation: fadeUp 0.8s ease 0.25s forwards;
+  }
+  .hero-title {
+    font-family: 'Lato', sans-serif;
+    font-size: clamp(38px, 6vw, 82px); font-weight: 900;
+    line-height: 1.0; letter-spacing: -2px; color: #F3F3FA;
+    margin-bottom: 32px;
+    opacity: 0; transform: translateY(30px);
+    animation: fadeUp 0.9s ease 0.4s forwards;
+  }
+  .hero-title em { color: #ffffff; font-style: normal; }
+  .hero-meta {
+    display: flex; gap: 40px; flex-wrap: wrap;
+    opacity: 0; transform: translateY(20px);
+    animation: fadeUp 0.8s ease 0.6s forwards;
+  }
+  .hero-meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .hero-meta-label { font-size: 10px; letter-spacing: 0.15em; color: rgba(255,255,255,0.45); text-transform: uppercase; }
+  .hero-meta-value { font-size: 14px; color: rgba(255,255,255,0.88); }
+  .hero-scroll {
+    position: absolute; right: 48px; bottom: 80px; z-index: 2;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    opacity: 0; animation: fadeIn 1s ease 1.2s forwards;
+  }
+  .hero-scroll span { font-size: 10px; letter-spacing: 0.15em; color: rgba(255,255,255,0.35); text-transform: uppercase; writing-mode: vertical-lr; }
+  .scroll-line {
+    width: 1px; height: 60px;
+    background: linear-gradient(to bottom, var(--cyan), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+
+  /* ── INLINE SUB-NAV ── */
+  .inline-nav {
+    display: flex; background: var(--white);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 64px; z-index: 100;
+  }
+  .inline-nav a {
+    flex: 1; text-align: center; padding: 16px 0;
+    font-size: 12px; font-family: 'DM Sans', sans-serif; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); text-decoration: none;
+    position: relative; transition: color 0.25s, background 0.25s;
+  }
+  .inline-nav a::after {
+    content: ''; position: absolute; bottom: 0; left: 15%; right: 15%; height: 2px;
+    background: var(--cyan); transform: scaleX(0); transform-origin: center;
+    transition: transform 0.3s ease; border-radius: 2px;
+  }
+  .inline-nav a:hover { color: var(--cyan-dark); background: var(--cyan-pale); }
+  .inline-nav a:hover::after { transform: scaleX(1); }
+  .inline-nav a.active { color: var(--cyan-dark); }
+  .inline-nav a.active::after { transform: scaleX(1); }
+
+  /* ── SHARED LAYOUT ── */
+  .section { padding: 100px 48px; max-width: 1280px; margin: 0 auto; }
+  .section-divider { height: 1px; background: var(--border); margin: 0 48px; }
+
+  /* ── REVEAL ── */
+  .reveal { opacity: 0; transform: translateY(36px); transition: opacity 0.75s ease, transform 0.75s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-left { opacity: 0; transform: translateX(-36px); transition: opacity 0.75s ease, transform 0.75s ease; }
+  .reveal-left.visible { opacity: 1; transform: translateX(0); }
+  .reveal-right { opacity: 0; transform: translateX(36px); transition: opacity 0.75s ease, transform 0.75s ease; }
+  .reveal-right.visible { opacity: 1; transform: translateX(0); }
+  .delay-1 { transition-delay: 0.1s; }
+  .delay-2 { transition-delay: 0.2s; }
+  .delay-3 { transition-delay: 0.3s; }
+  .delay-4 { transition-delay: 0.4s; }
+  .delay-5 { transition-delay: 0.5s; }
+
+  /* ── SECTION HEADER ── */
+  .section-label {
+    font-size: 10px; letter-spacing: 0.2em; color: var(--cyan-dark);
+    text-transform: uppercase; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-label::before { content: ''; display: block; width: 28px; height: 2px; background: var(--cyan); border-radius: 1px; }
+  .section-title {
+    font-family: 'Lato', sans-serif;
+    font-size: clamp(28px, 3.5vw, 48px); font-weight: 900;
+    line-height: 1.1; letter-spacing: -0.8px; color: var(--ink); margin-bottom: 20px;
+  }
+  .section-body { font-size: 15px; color: var(--muted); max-width: 680px; line-height: 1.85; }
+
+  /* ── STACKED CARDS ── */
+  .stack-cards { display: flex; flex-direction: column; gap: 20px; margin-top: 48px; }
+  .stack-card {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-left: 3px solid var(--cyan); padding: 36px 44px;
+    transition: box-shadow 0.25s, border-left-color 0.25s;
+  }
+  .stack-card:hover { box-shadow: 0 4px 24px rgba(0,180,216,0.08); border-left-color: var(--cyan-dark); }
+  .stack-card h3 {
+    font-family: 'Lato', sans-serif; font-size: 12px; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--cyan-dark); margin-bottom: 14px;
+  }
+  .stack-card p { font-size: 15px; color: var(--ink-mid); line-height: 1.8; }
+  .stack-card ul { margin-top: 12px; padding-left: 20px; }
+  .stack-card ul li { font-size: 15px; color: var(--ink-mid); line-height: 1.8; margin-bottom: 6px; }
+
+  /* ── IMPACT GRID ── */
+  .impact-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 48px; }
+  .impact-item {
+    background: var(--cyan-pale); border: 1px solid var(--border-strong);
+    border-radius: 2px; padding: 36px 28px;
+  }
+  .impact-value {
+    font-family: 'Lato', sans-serif; font-size: 44px; font-weight: 900;
+    color: var(--cyan-dark); line-height: 1; margin-bottom: 10px;
+  }
+  .impact-label { font-size: 13px; color: var(--ink-mid); line-height: 1.65; }
+
+  /* ── IMAGE FRAME ── */
+  .img-frame {
+    position: relative; border-radius: 4px; overflow: hidden;
+    border: 1px solid var(--border); background: var(--off-white);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+  }
+  .img-frame img { width: 100%; display: block; transition: transform 0.55s ease; }
+  .img-frame:hover img { transform: scale(1.015); }
+
+  /* ── OPTION LABEL (for design option blocks) ── */
+  .option-label {
+    font-family: 'Lato', sans-serif; font-size: 14px; font-weight: 700;
+    color: var(--ink); margin-bottom: 16px; margin-top: 48px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .option-label::before {
+    content: ''; display: block; width: 20px; height: 2px;
+    background: var(--cyan); border-radius: 1px;
+  }
+
+  /* ── PROCESS / EVO STEPS ── */
+  .evo-steps { display: flex; flex-direction: column; gap: 20px; margin-top: 56px; }
+  .evo-step {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-left: 3px solid transparent; padding: 44px;
+    transition: border-left-color 0.3s, box-shadow 0.3s;
+  }
+  .evo-step:hover { border-left-color: var(--cyan); box-shadow: 0 4px 24px rgba(0,180,216,0.07); }
+  .evo-step-header { display: flex; align-items: baseline; gap: 20px; margin-bottom: 18px; }
+  .evo-step-num {
+    font-family: 'Lato', sans-serif; font-size: 44px; font-weight: 900;
+    color: rgba(0,180,216,0.2); line-height: 1; flex-shrink: 0;
+  }
+  .evo-step-title {
+    font-family: 'Lato', sans-serif; font-size: 21px; font-weight: 700;
+    color: var(--ink); letter-spacing: -0.2px;
+  }
+  .evo-step-desc { font-size: 15px; color: var(--ink-mid); line-height: 1.8; max-width: 880px; }
+  .evo-step-img { margin-top: 32px; }
+  .evo-step-imgs { display: flex; flex-direction: column; gap: 16px; margin-top: 32px; }
+
+  /* ── SOLUTION BLOCKS ── */
+  .solution-block {
+    display: grid; grid-template-columns: 1fr 1.6fr; gap: 72px;
+    align-items: start; margin-bottom: 90px; padding-bottom: 90px;
+    border-bottom: 1px solid var(--border);
+  }
+  .solution-block:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .solution-block.reverse { grid-template-columns: 1.6fr 1fr; }
+  .solution-block.reverse .solution-text { order: 2; }
+  .solution-block.reverse .solution-visual { order: 1; }
+  .solution-number {
+    font-family: 'Lato', sans-serif; font-size: 72px; font-weight: 900;
+    color: rgba(0,180,216,0.12); line-height: 1; margin-bottom: -16px;
+  }
+  .solution-text h3 {
+    font-family: 'Lato', sans-serif; font-size: 24px; font-weight: 700;
+    line-height: 1.25; letter-spacing: -0.3px; color: var(--ink); margin-bottom: 14px;
+  }
+  .solution-text p { font-size: 15px; color: var(--ink-mid); line-height: 1.8; }
+
+  /* ── REFLECTION BLOCK ── */
+  .reflection-block {
+    margin-top: 40px; padding: 44px;
+    background: var(--harness-blue); border-radius: 2px;
+  }
+  .reflection-block .section-label { color: var(--cyan); }
+  .reflection-block .section-label::before { background: var(--cyan); }
+  .reflection-block p {
+    font-family: 'Lato', sans-serif; font-size: 19px; font-weight: 700;
+    color: #fff; line-height: 1.55; max-width: 780px;
+  }
+
+  /* ── UP NEXT ── */
+  .up-next-block {
+    margin-top: 60px; padding: 44px;
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-left: 3px solid var(--cyan);
+    display: flex; align-items: center; justify-content: space-between; gap: 24px;
+    flex-wrap: wrap;
+  }
+  .up-next-label {
+    font-family: 'Lato', sans-serif; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.15em; text-transform: uppercase; color: var(--cyan-dark); margin-bottom: 10px;
+  }
+  .up-next-title {
+    font-family: 'Lato', sans-serif; font-size: 22px; font-weight: 700;
+    color: var(--ink); line-height: 1.3; max-width: 600px;
+  }
+  .up-next-arrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'Lato', sans-serif; font-size: 13px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--cyan-dark); text-decoration: none;
+    border: 1.5px solid var(--cyan); padding: 12px 24px; border-radius: 2px;
+    white-space: nowrap;
+    transition: background 0.2s, color 0.2s;
+  }
+  .up-next-arrow:hover { background: var(--cyan); color: #fff; }
+
+  /* ── FOOTER ── */
+  .site-footer {
+    background: var(--harness-blue); color: rgba(255,255,255,0.5);
+    padding: 48px; display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 20px;
+  }
+  .site-footer .foot-brand { font-family: 'Lato', sans-serif; font-size: 14px; font-weight: 700; color: #fff; }
+  .site-footer p { font-size: 13px; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { to { opacity: 1; } }
+  @keyframes scrollPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 860px) {
+    .portfolio-nav { padding: 0 20px; }
+    .pnav-links { gap: 20px; }
+    .hero { padding-top: 64px; }
+    .hero-inner { grid-template-columns: 1fr; }
+    .hero-content { padding: 48px 24px 40px; justify-content: flex-end; }
+    .hero-graphic {
+      height: 260px;
+      order: -1; /* graphic on top on mobile */
+    }
+    .hero-graphic img {
+      object-position: center center;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%);
+      -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%);
+    }
+    .hero-scroll { display: none; }
+    .section { padding: 72px 24px; }
+    .section-divider { margin: 0 24px; }
+    .stack-card, .evo-step { padding: 28px 20px; }
+    .solution-block, .solution-block.reverse { grid-template-columns: 1fr; gap: 36px; }
+    .solution-block.reverse .solution-text { order: 1; }
+    .solution-block.reverse .solution-visual { order: 2; }
+    .impact-grid { grid-template-columns: 1fr; }
+    .inline-nav a { font-size: 10px; padding: 13px 4px; }
+    .site-footer { padding: 36px 24px; }
+    .up-next-block { padding: 28px 20px; }
+  }
+
+  .proj-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+.proj-nav:hover { opacity: 0.75; }
+.proj-nav-label {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+  font-family: 'Lato', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.proj-nav-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  font-family: 'Lato', sans-serif;
+}
+.proj-nav.next { text-align: right; }
+.footer-center { text-align: center; }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<!-- ── PORTFOLIO NAV ── -->
+<header class="portfolio-nav">
+  <a class="pnav-logo" href="feature_work.html">
+    <img src="Images/logo.png" alt="Yi Feng logo" />
+    <span>Yi Feng</span>
+  </a>
+  <nav class="pnav-links">
+    <a href="feature_work.html">Home</a>
+    <a href="feature_work.html">Work</a>
+    <a href="About_Me.html">About Me</a>
+  </nav>
+</header>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-bg-img"></div>
+  <div class="hero-bg-overlay"></div>
+
+  <div class="hero-inner">
+
+    <!-- LEFT: text content -->
+    <div class="hero-content">
+      <div class="hero-brand">
+        <img src="Images/harness.svg" alt="Harness" />
+      </div>
+      <div class="hero-eyebrow">UX Case Study · PLG Growth · Harness</div>
+      <h1 class="hero-title">Driving User Growth on<br><em>Harness PLG Journey</em></h1>
+      <div class="hero-meta">
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Role</span>
+          <span class="hero-meta-value">Platform-Level UX Designer</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Focus</span>
+          <span class="hero-meta-value">Product-Led Growth · Activation</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Timeline</span>
+          <span class="hero-meta-value">8 Months</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Outcome</span>
+          <span class="hero-meta-value">20–25% Module Activation Increase</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: graphic -->
+    <div class="hero-graphic">
+      <img src="Images/Dark Mode.png" alt="Harness platform module roadmap" />
+    </div>
+
+  </div><!-- /hero-inner -->
+
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- ── INLINE SUB-NAV ── -->
+<nav class="inline-nav">
+  <a href="#overview">Overview</a>
+  <a href="#strategy">Strategy</a>
+  <a href="#solution">Solution</a>
+  <a href="#process">Process</a>
+</nav>
+
+<!-- ══════════════ OVERVIEW ══════════════ -->
+<div class="section-divider"></div>
+<section class="section" id="overview">
+  <div class="reveal">
+    <div class="section-label">Project Overview</div>
+    <h2 class="section-title">Driving PLG growth across<br>the Harness platform</h2>
+    <p class="section-body">Harness is an intelligent software delivery platform that has been successful in acquiring hundreds of mid-market and enterprise customers through SLG motion. With the trend shifting towards SMB self-service purchases, Harness launched a PLG motion to further support product growth.</p>
+  </div>
+
+  <div class="stack-cards">
+    <div class="stack-card reveal delay-1">
+      <h3>Background</h3>
+      <p>Despite 80% of users choosing the CI/CD module after sign-up, other modules like Cloud Cost Management, Service Reliability Management, and Security Testing had activation rates below 5%. This indicated a lack of platform-level growth strategy for promoting modules with lower activation rates.</p>
+    </div>
+
+    <div class="stack-card reveal delay-2">
+      <h3>My Role</h3>
+      <p>As a platform-level UX designer responsible for driving PLG motion, I took a holistic view of all modules and identified opportunities to promote them. With an ambitious activation goal of 35% for each module, I collaborated closely with module designers to identify touchpoints in the user journey where each module could be introduced and activated along the pipeline. By fostering collaboration between different teams, I helped drive sustained growth for the platform.</p>
+    </div>
+
+    <div class="stack-card reveal delay-3">
+      <h3>Challenge</h3>
+      <p>My design challenge was balancing growth and user experience in PLG motions. We wanted to achieve growth and profitability through strategies like freemium models, while ensuring a positive and engaging user experience. I needed to figure out when, where, what, and how to introduce each module to let users gain value from them.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ IMPACT ══════════════ -->
+<div class="section-divider"></div>
+<section class="section" id="impact-section">
+  <div class="reveal">
+    <div class="section-label">Impact</div>
+    <h2 class="section-title">Measurable results across<br>the platform</h2>
+    <p class="section-body">A cross-functional growth strategy delivered concrete improvements in module adoption, onboarding efficiency, and team collaboration culture.</p>
+  </div>
+
+  <div class="impact-grid">
+    <div class="impact-item reveal delay-1">
+      <div class="impact-value">20–25%</div>
+      <div class="impact-label">Increase in module activation across the board through cross-functional design growth strategy</div>
+    </div>
+    <div class="impact-item reveal delay-2">
+      <div class="impact-value">80%</div>
+      <div class="impact-label">Of users chose the sample pipeline to start, shortening the CI/CD onboarding process significantly</div>
+    </div>
+    <div class="impact-item reveal delay-3">
+      <div class="impact-value">5+</div>
+      <div class="impact-label">Modules promoted beyond CI/CD — SRM, CCM, STO, and Feature Flags all showing improved activation</div>
+    </div>
+  </div>
+
+  <div class="reflect reveal" style="margin-top:40px">
+    <div class="reflection-block">
+      <div class="section-label" style="margin-bottom:18px">Key Takeaway</div>
+      <p>"Users are more likely to try new modules after successful deployment. Promoting modules at moments of task completion — not failure — is the most effective PLG trigger."</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ STRATEGY ══════════════ -->
+<div class="section-divider"></div>
+<section class="section" id="strategy">
+  <div class="reveal">
+    <div class="section-label">Strategy</div>
+    <h2 class="section-title">CI/CD as the central hub for<br>platform-wide activation</h2>
+    <p class="section-body">Two complementary strategies guided our growth design: using the CI/CD pipeline as the central hub to introduce all other modules, and fostering a collaborative culture that creates viral loops within teams.</p>
+  </div>
+
+  <div class="stack-cards">
+    <div class="stack-card reveal delay-1">
+      <h3>Strategy 1 — CI/CD Pipeline as Central Hub</h3>
+      <p>We focused on using the CI/CD pipeline as the central hub for all DevOps activities. Since 80% of users start here, it was the highest-leverage touchpoint to introduce adjacent modules at moments of maximum relevance — after a successful deployment, during a security scan, or when a cost anomaly appears.</p>
+    </div>
+    <div class="stack-card reveal delay-2">
+      <h3>Strategy 2 — Foster Collaborative Culture for Sustained Growth</h3>
+      <p>Continuous Integration and Continuous Deployment demands coordination among diverse roles and teams to achieve smooth code integration and deployment. Proactively encouraging collaboration at the right time — rather than when something goes wrong — can unlock the value of related modules and create organic growth loops through team invitations and shared pipelines.</p>
+    </div>
+  </div>
+
+  <div class="reveal" style="margin-top:48px">
+    <div class="img-frame">
+      <img src="Images/harness_growth.png" alt="Harness growth strategy diagram" loading="lazy" />
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ SOLUTION ══════════════ -->
+<div class="section-divider"></div>
+<section class="section" id="solution">
+  <div class="reveal">
+    <div class="section-label">Solution</div>
+    <h2 class="section-title">Redesigned onboarding and<br>cross-module promotion patterns</h2>
+    <p class="section-body">To foster a culture of collaboration with the CI/CD pipeline as the central hub, we conducted experiments to simplify the sharing process and redesigned the platform onboarding landing page using the JBD framework. Task-based options reduce the complexity of selecting from more than 10 modules, enabling users to easily discover and activate the potential of all available modules.</p>
+  </div>
+
+  <div class="reveal" style="margin-top: 48px">
+    <div class="img-frame">
+      <img src="Images/Light%20Mode.png" alt="Harness dashboard — light mode" loading="lazy" />
+    </div>
+  </div>
+
+  <!-- Design Options -->
+  <div class="reveal" style="margin-top:64px">
+    <div class="section-label">Design Explorations</div>
+    <h3 class="section-title" style="font-size: clamp(22px, 2.5vw, 34px);">Four promotion patterns tested</h3>
+    <p class="section-body">We explored multiple interaction patterns for cross-module promotion, testing each for adoption lift and experience quality.</p>
+  </div>
+
+  <div class="reveal delay-1">
+    <div class="option-label">Option one</div>
+    <div class="img-frame">
+      <img src="Images/option1-min.gif" alt="Design option 1" loading="lazy" />
+    </div>
+  </div>
+
+  <div class="reveal delay-1">
+    <div class="option-label">Option two</div>
+    <div class="img-frame">
+      <img src="Images/option2-min.gif" alt="Design option 2" loading="lazy" />
+    </div>
+  </div>
+
+  <div class="reveal delay-1">
+    <div class="option-label">Option three</div>
+    <div class="img-frame">
+      <img src="Images/option3.gif" alt="Design option 3" loading="lazy" />
+    </div>
+  </div>
+
+  <div class="reveal delay-1">
+    <div class="option-label">SRM module + CCM module</div>
+    <div class="img-frame">
+      <img src="Images/srm+ccm-min.gif" alt="SRM and CCM module promotion" loading="lazy" />
+    </div>
+  </div>
+
+  <div class="reveal delay-1">
+    <div class="option-label">Account-level overview — module promotion</div>
+    <div class="img-frame">
+      <img src="Images/account-level%20overview%201.png" alt="Account-level module promotion" loading="lazy" />
+    </div>
+  </div>
+
+  <div class="reveal delay-1">
+    <div class="option-label">Account-level overview — software maturity levels</div>
+    <div class="img-frame">
+      <img src="Images/account-level%20overview%202.png" alt="Software maturity levels overview" loading="lazy" />
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ PROCESS ══════════════ -->
+<div class="section-divider"></div>
+<section class="section" id="process">
+  <div class="reveal">
+    <div class="section-label">Design Process</div>
+    <h2 class="section-title">From funnel mapping to<br>experiment validation</h2>
+    <p class="section-body">A four-stage process that moved from understanding the activation gap, to mapping user journeys, running growth experiments, and validating through A/B testing.</p>
+  </div>
+
+  <div class="evo-steps">
+
+    <!-- Step 1 -->
+    <div class="evo-step reveal delay-1">
+      <div class="evo-step-header">
+        <div class="evo-step-num">01</div>
+        <div class="evo-step-title">Approaching the Problem — Mapping the Activation Gap</div>
+      </div>
+      <p class="evo-step-desc">The design problem was clear: despite 80% of users choosing the CI/CD module after sign-up, other modules had activation rates below 5%. This indicated a lack of platform-level growth strategy. To engage all stakeholders and optimize activation funnels for each module, I mapped out the workflow with typical personas from sign-up to the first pipeline run — identifying touchpoints where other modules could be introduced.</p>
+      <div class="evo-step-imgs">
+        <div class="img-frame"><img src="Images/personas.png" alt="User personas" loading="lazy" /></div>
+        <div class="img-frame"><img src="Images/crossing%20platform%20workflow.png" alt="Cross-platform workflow" loading="lazy" /></div>
+        <div class="img-frame"><img src="Images/premium%20onboarding.png" alt="Premium onboarding flow" loading="lazy" /></div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="evo-step reveal delay-2">
+      <div class="evo-step-header">
+        <div class="evo-step-num">02</div>
+        <div class="evo-step-title">Implement Experiments — Funnel-Based vs. Loop-Based Growth</div>
+      </div>
+      <p class="evo-step-desc">One focal point of debate among stakeholders was about the growth strategy: funnel-based or loop-based? I used an experiment framework to validate whether the combination of both could work for increasing activation of designated modules. One area focused on leveraging CI/CD modules to onboard users and promote relevant modules. Another focused on encouraging users to share after they gained value from the products.</p>
+      <div class="evo-step-imgs">
+        <div class="img-frame"><img src="Images/Growth%20Experimentation%20Framework.png" alt="Growth experimentation framework" loading="lazy" /></div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="evo-step reveal delay-3">
+      <div class="evo-step-header">
+        <div class="evo-step-num">03</div>
+        <div class="evo-step-title">Experiment Iteration Workflow</div>
+      </div>
+      <p class="evo-step-desc">Running iterative experiments across the platform to test cross-module promotion patterns at key workflow moments — first-time project landing, chaos workflow integration, and SRM + CCM combined promotion post-deployment.</p>
+      <div class="evo-step-imgs">
+        <div class="img-frame"><img src="Images/Project%20landing%20page-first%20time.png" alt="Project landing page first time" loading="lazy" /></div>
+        <div class="img-frame"><img src="Images/chaos%20workflow.png" alt="Chaos workflow" loading="lazy" /></div>
+        <div class="img-frame"><img src="Images/srm+ccm.png" alt="SRM + CCM promotion" loading="lazy" /></div>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="evo-step reveal delay-4">
+      <div class="evo-step-header">
+        <div class="evo-step-num">04</div>
+        <div class="evo-step-title">Test — A/B Testing Four Typical Use Cases</div>
+      </div>
+      <p class="evo-step-desc">To validate whether the growth strategy with promotion content could increase module awareness and ultimately improve conversion rate, I conducted A/B tests for four typical use cases, while tracking adoption rates of each new module to measure whether the collaborative prompts worked.</p>
+      <div class="evo-step-imgs">
+        <div class="img-frame"><img src="Images/test%201.png" alt="A/B test 1" loading="lazy" /></div>
+        <div class="img-frame"><img src="Images/test%202.png" alt="A/B test 2" loading="lazy" /></div>
+        <div class="img-frame"><img src="Images/test%203.png" alt="A/B test 3" loading="lazy" /></div>
+        <div class="img-frame"><img src="Images/test%204.png" alt="A/B test 4" loading="lazy" /></div>
+        <div class="img-frame"><img src="Images/test%205.png" alt="A/B test 5" loading="lazy" /></div>
+      </div>
+    </div>
+
+    <!-- Step 5 — Takeaway -->
+    <div class="evo-step reveal delay-5">
+      <div class="evo-step-header">
+        <div class="evo-step-num">05</div>
+        <div class="evo-step-title">Takeaway from the Results</div>
+      </div>
+      <p class="evo-step-desc">Based on A/B test results, all types of promotional content improved conversion rates, with varying effects:</p>
+      <ul style="margin-top:16px; padding-left:20px; display:flex; flex-direction:column; gap:10px;">
+        <li style="font-size:15px; color:var(--ink-mid); line-height:1.8">Users are more likely to try new modules after successful deployment. When promoting SRM and CCM post-deployment, users tend to prioritize monitoring service reliability and enabling cloud cost management while reviewing deployment health and service.</li>
+        <li style="font-size:15px; color:var(--ink-mid); line-height:1.8">Users are more likely to invite collaborators after successfully completing tasks — such as running security scans or chaos experiments — than when something goes wrong.</li>
+        <li style="font-size:15px; color:var(--ink-mid); line-height:1.8">Hotjar data shows that 80% of users choose the sample pipeline to start, which shortens the CI/CD onboarding process significantly.</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- Up Next -->
+  <div class="up-next-block reveal" style="margin-top:80px">
+    <div>
+      <div class="up-next-label">Up Next</div>
+      <div class="up-next-title">Streamlining Self-Service Upgrade and Licensing Management Lifecycle</div>
+    </div>
+    <a class="up-next-arrow" href="Harness%20upgrade.html">
+      View Case Study →
+    </a>
+  </div>
+</section>
+
+<!-- ══════════════ FOOTER ══════════════ -->
+<footer class="site-footer">
+  <a class="proj-nav prev" href="Partner Quality_updated.html">
+    <span class="proj-nav-label">← Previous</span>
+    <span class="proj-nav-title">Partner Quality</span>
+  </a>
+
+  <div class="footer-center">
+    <div class="foot-brand">Harness — PLG Growth · DevOps Platform</div>
+    <p>Yi Feng Design · UX Case Study · 2022</p>
+  </div>
+
+  <a class="proj-nav next" href="Troubleshooting_casestudy.html">
+    <span class="proj-nav-label">Next →</span>
+    <span class="proj-nav-title">Cloudwiz AI-Powered Troubleshooting</span>
+  </a>
+</footer>
+
+<script>
+  // Progress bar
+  const progress = document.getElementById('progress');
+  window.addEventListener('scroll', () => {
+    const total = document.documentElement.scrollHeight - window.innerHeight;
+    progress.style.width = (window.scrollY / total * 100) + '%';
+  }, { passive: true });
+
+  // Scroll reveal
+  const revealEls = document.querySelectorAll('.reveal, .reveal-left, .reveal-right');
+  const revealObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); revealObs.unobserve(e.target); }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+  revealEls.forEach(el => revealObs.observe(el));
+
+  // Active sub-nav on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.inline-nav a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 180) current = s.id; });
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + current));
+  }, { passive: true });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Redesign Troubleshooting with AI — Yi Feng</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,300&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --white:      #ffffff;
+    --off-white:  #f5f7f9;
+    --blue:       #0ea5e9;
+    --blue-dark:  #0284c7;
+    --blue-pale:  #e0f2fe;
+    --blue-mid:   rgba(14,165,233,0.12);
+    --ink:        #111820;
+    --ink-mid:    #3a4454;
+    --muted:      #6b7a8f;
+    --border:     #e0e8f0;
+    --border-strong: rgba(14,165,233,0.25);
+    --card-bg:    #f8fafc;
+    --hero-navy:  #0a1628;
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--white);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--off-white); }
+  ::-webkit-scrollbar-thumb { background: var(--blue); border-radius: 2px; }
+
+  /* ── PORTFOLIO NAV ── */
+  .portfolio-nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 48px;
+    height: 64px;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .pnav-logo {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none; color: var(--ink);
+  }
+  .pnav-logo img {
+    height: 32px; width: auto;
+  }
+  .pnav-logo span {
+    font-family: 'Lato', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--ink);
+    letter-spacing: -0.3px;
+  }
+  .pnav-links { display: flex; gap: 32px; }
+  .pnav-links a {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-mid);
+    text-decoration: none;
+    letter-spacing: 0.01em;
+    transition: color 0.2s;
+    position: relative;
+  }
+  .pnav-links a::after {
+    content: '';
+    position: absolute; bottom: -2px; left: 0; right: 0; height: 2px;
+    background: var(--blue);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.25s ease;
+    border-radius: 1px;
+  }
+  .pnav-links a:hover { color: var(--blue-dark); }
+  .pnav-links a:hover::after { transform: scaleX(1); }
+
+  /* ── PROGRESS BAR ── */
+  #progress {
+    position: fixed; top: 64px; left: 0; height: 2px;
+    background: var(--blue); z-index: 300; width: 0%;
+    transition: width 0.1s linear;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh; display: flex; align-items: flex-end;
+    padding: 64px 48px 80px;
+    position: relative; overflow: hidden;
+    background: var(--hero-navy);
+  }
+  .hero-brand-logo {
+    position: absolute;
+    top: calc(64px + 128px);
+    left: 48px;
+    z-index: 3;
+    opacity: 0;
+    animation: fadeIn 0.8s ease 0.1s forwards;
+  }
+  .hero-brand-logo img {
+    height: 28px;
+    width: auto;
+    display: block;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 70% 60% at 75% 25%, rgba(14,165,233,0.10) 0%, transparent 65%),
+      linear-gradient(160deg, #0a1628 0%, #07111e 100%);
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(14,165,233,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(14,165,233,0.06) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 25%, rgba(0,0,0,0.4) 75%, transparent 100%);
+  }
+  .hero-content { position: relative; z-index: 2; max-width: 900px; }
+  .hero-eyebrow {
+    font-size: 11px; font-weight: 500; letter-spacing: 0.2em;
+    color: var(--blue); text-transform: uppercase; margin-bottom: 24px;
+    opacity: 0; transform: translateY(20px);
+    animation: fadeUp 0.8s ease 0.2s forwards;
+  }
+  .hero-title {
+    font-family: 'Lato', sans-serif;
+    font-size: clamp(42px, 6.5vw, 88px); font-weight: 900;
+    line-height: 1.0; letter-spacing: -2px; color: #fff;
+    margin-bottom: 32px;
+    opacity: 0; transform: translateY(30px);
+    animation: fadeUp 0.9s ease 0.35s forwards;
+  }
+  .hero-title em { color: var(--blue); font-style: normal; }
+  .hero-meta {
+    display: flex; gap: 40px; flex-wrap: wrap;
+    opacity: 0; transform: translateY(20px);
+    animation: fadeUp 0.8s ease 0.55s forwards;
+  }
+  .hero-meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .hero-meta-label { font-size: 10px; letter-spacing: 0.15em; color: rgba(255,255,255,0.45); text-transform: uppercase; }
+  .hero-meta-value { font-size: 14px; color: rgba(255,255,255,0.85); }
+  .hero-scroll {
+    position: absolute; right: 48px; bottom: 80px; z-index: 2;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    opacity: 0; animation: fadeIn 1s ease 1.2s forwards;
+  }
+  .hero-scroll span { font-size: 10px; letter-spacing: 0.15em; color: rgba(255,255,255,0.35); text-transform: uppercase; writing-mode: vertical-lr; }
+  .scroll-line {
+    width: 1px; height: 60px;
+    background: linear-gradient(to bottom, var(--blue), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+
+  /* ── INLINE NAV ── */
+  .inline-nav {
+    display: flex;
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 64px; z-index: 100;
+  }
+  .inline-nav a {
+    flex: 1; text-align: center; padding: 16px 0;
+    font-size: 12px; font-family: 'DM Sans', sans-serif; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); text-decoration: none;
+    position: relative;
+    transition: color 0.25s, background 0.25s;
+  }
+  .inline-nav a::after {
+    content: '';
+    position: absolute; bottom: 0; left: 15%; right: 15%; height: 2px;
+    background: var(--blue);
+    transform: scaleX(0); transform-origin: center;
+    transition: transform 0.3s ease;
+    border-radius: 2px;
+  }
+  .inline-nav a:hover { color: var(--blue-dark); background: var(--blue-pale); }
+  .inline-nav a:hover::after { transform: scaleX(1); }
+  .inline-nav a.active { color: var(--blue-dark); }
+  .inline-nav a.active::after { transform: scaleX(1); }
+
+  /* ── SHARED SECTION SHELL ── */
+  .section { padding: 100px 48px; max-width: 1280px; margin: 0 auto; }
+  .section-divider { height: 1px; background: var(--border); margin: 0 48px; }
+
+  /* ── REVEAL ── */
+  .reveal { opacity: 0; transform: translateY(36px); transition: opacity 0.75s ease, transform 0.75s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-left { opacity: 0; transform: translateX(-36px); transition: opacity 0.75s ease, transform 0.75s ease; }
+  .reveal-left.visible { opacity: 1; transform: translateX(0); }
+  .reveal-right { opacity: 0; transform: translateX(36px); transition: opacity 0.75s ease, transform 0.75s ease; }
+  .reveal-right.visible { opacity: 1; transform: translateX(0); }
+  .delay-1 { transition-delay: 0.1s; }
+  .delay-2 { transition-delay: 0.2s; }
+  .delay-3 { transition-delay: 0.3s; }
+  .delay-4 { transition-delay: 0.4s; }
+  .delay-5 { transition-delay: 0.5s; }
+
+  /* ── SECTION HEADER ── */
+  .section-label {
+    font-size: 10px; letter-spacing: 0.2em; color: var(--blue-dark);
+    text-transform: uppercase; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-label::before { content: ''; display: block; width: 28px; height: 2px; background: var(--blue); border-radius: 1px; }
+  .section-title {
+    font-family: 'Lato', sans-serif;
+    font-size: clamp(28px, 3.5vw, 48px); font-weight: 900;
+    line-height: 1.1; letter-spacing: -0.8px; color: var(--ink); margin-bottom: 20px;
+  }
+  .section-body { font-size: 15px; color: var(--muted); max-width: auto; line-height: 1.85; }
+
+  /* ── STACKED CARDS ── */
+  .stack-cards { display: flex; flex-direction: column; gap: 20px; margin-top: 48px; }
+  .stack-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--blue);
+    padding: 36px 44px;
+    transition: box-shadow 0.25s, border-left-color 0.25s;
+  }
+  .stack-card:hover { box-shadow: 0 4px 24px rgba(14,165,233,0.08); border-left-color: var(--blue-dark); }
+  .stack-card h3 {
+    font-family: 'Lato', sans-serif; font-size: 12px; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--blue-dark); margin-bottom: 14px;
+  }
+  .stack-card p { font-size: 15px; color: var(--ink-mid); line-height: 1.8; }
+
+  .role-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .tag {
+    font-size: 11px; letter-spacing: 0.06em; color: var(--blue-dark);
+    background: var(--blue-pale); border: 1px solid var(--border-strong);
+    border-radius: 3px; padding: 4px 12px; text-transform: uppercase;
+  }
+  .constraints-list { list-style: none; margin-top: 14px; }
+  .constraints-list li {
+    font-size: 14px; color: var(--ink-mid); padding: 9px 0;
+    border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px;
+  }
+  .constraints-list li:last-child { border-bottom: none; }
+  .constraints-list li::before { content: '↔'; color: var(--blue); font-size: 13px; flex-shrink: 0; }
+
+  /* ── IMPACT GRID ── */
+  .impact-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 48px; }
+  .impact-item {
+    background: var(--blue-pale); border: 1px solid var(--border-strong);
+    border-radius: 2px; padding: 36px 28px;
+  }
+  .impact-value {
+    font-family: 'Lato', sans-serif; font-size: 44px; font-weight: 900;
+    color: var(--blue-dark); line-height: 1; margin-bottom: 10px;
+  }
+  .impact-label { font-size: 13px; color: var(--ink-mid); line-height: 1.65; }
+
+  .reflection-block {
+    margin-top: 40px; padding: 44px;
+    background: var(--hero-navy);
+    border-radius: 2px;
+  }
+  .reflection-block .section-label { color: var(--blue); }
+  .reflection-block .section-label::before { background: var(--blue); }
+  .reflection-block p {
+    font-family: 'Lato', sans-serif; font-size: 19px; font-weight: 700;
+    color: #fff; line-height: 1.55; max-width: 780px;
+  }
+
+  /* ── SOLUTION BLOCKS ── */
+  .solution-block {
+    display: grid; grid-template-columns: 1fr 1.6fr; gap: 72px;
+    align-items: start; margin-bottom: 90px; padding-bottom: 90px;
+    border-bottom: 1px solid var(--border);
+  }
+  .solution-block:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .solution-block.reverse { grid-template-columns: 1.6fr 1fr; }
+  .solution-block.reverse .solution-text { order: 2; }
+  .solution-block.reverse .solution-visual { order: 1; }
+  .solution-number {
+    font-family: 'Lato', sans-serif; font-size: 72px; font-weight: 900;
+    color: rgba(14,165,233,0.12); line-height: 1; margin-bottom: -16px;
+  }
+  .solution-text h3 {
+    font-family: 'Lato', sans-serif; font-size: 24px; font-weight: 700;
+    line-height: 1.25; letter-spacing: -0.3px; color: var(--ink); margin-bottom: 14px;
+  }
+  .solution-text p { font-size: 15px; color: var(--ink-mid); line-height: 1.8; }
+
+  /* ── IMAGE FRAME ── */
+  .img-frame {
+    position: relative; border-radius: 4px; overflow: hidden;
+    border: 1px solid var(--border); background: var(--off-white);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+  }
+  .img-frame img { width: 100%; display: block; transition: transform 0.55s ease; }
+  .img-frame:hover img { transform: scale(1.015); }
+  .img-frame figcaption {
+    font-size: 12px; color: var(--muted); text-align: center;
+    padding: 10px 16px; background: var(--off-white);
+    border-top: 1px solid var(--border); letter-spacing: 0.04em;
+  }
+
+  /* ── EVOLUTION STEPS ── */
+  .evo-steps { display: flex; flex-direction: column; gap: 20px; margin-top: 56px; }
+  .evo-step {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-left: 3px solid transparent; padding: 44px;
+    transition: border-left-color 0.3s, box-shadow 0.3s;
+  }
+  .evo-step:hover { border-left-color: var(--blue); box-shadow: 0 4px 24px rgba(14,165,233,0.07); }
+  .evo-step-header { display: flex; align-items: baseline; gap: 20px; margin-bottom: 18px; }
+  .evo-step-num {
+    font-family: 'Lato', sans-serif; font-size: 44px; font-weight: 900;
+    color: rgba(14,165,233,0.2); line-height: 1; flex-shrink: 0;
+  }
+  .evo-step-title {
+    font-family: 'Lato', sans-serif; font-size: 21px; font-weight: 700;
+    color: var(--ink); letter-spacing: -0.2px;
+  }
+  .evo-step-desc { font-size: 15px; color: var(--ink-mid); line-height: 1.8; max-width: 880px; }
+  .evo-step-img { margin-top: 32px; }
+
+  /* ── FULL-WIDTH IMAGE ── */
+  .full-img-wrap { padding: 0 48px; }
+  .full-img-wrap .img-frame { border-radius: 2px; }
+
+  /* ── FOOTER ── */
+  .site-footer {
+    background: var(--hero-navy); color: rgba(255,255,255,0.5);
+    padding: 48px; display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 20px;
+  }
+  .site-footer .foot-brand { font-family: 'Lato', sans-serif; font-size: 14px; font-weight: 700; color: #fff; }
+  .site-footer p { font-size: 13px; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { to { opacity: 1; } }
+  @keyframes scrollPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* ── IMAGE LIGHTBOX ── */
+  .lightbox-modal {
+    position: fixed; inset: 0;
+    background: rgba(10, 22, 40, 0.92);
+    display: flex; align-items: center; justify-content: center;
+    padding: 48px; z-index: 9999;
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.28s ease, visibility 0.28s ease;
+  }
+  .lightbox-modal.active { opacity: 1; visibility: visible; }
+  .lightbox-content {
+    position: relative; max-width: 95vw; max-height: 92vh;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .lightbox-image {
+    max-width: 100%; max-height: 92vh; object-fit: contain;
+    border-radius: 6px; box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+    transform: scale(0.96); transition: transform 0.28s ease;
+  }
+  .lightbox-modal.active .lightbox-image { transform: scale(1); }
+  .lightbox-close {
+    position: absolute; top: -18px; right: -18px;
+    width: 42px; height: 42px; border: none; border-radius: 50%;
+    background: rgba(255,255,255,0.95); color: var(--hero-navy);
+    font-size: 24px; line-height: 1; cursor: pointer;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.2);
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+  .lightbox-close:hover { transform: scale(1.05); background: #ffffff; }
+  .img-frame img { cursor: zoom-in; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 860px) {
+    .portfolio-nav { padding: 0 20px; }
+    .pnav-links { gap: 20px; }
+    .hero { padding: 64px 24px 60px; }
+    .hero-brand-logo { left: 24px; top: calc(64px + 24px); }
+    .hero-scroll { display: none; }
+    .section { padding: 72px 24px; }
+    .section-divider { margin: 0 24px; }
+    .full-img-wrap { padding: 0 24px; }
+    .stack-card, .evo-step { padding: 28px 20px; }
+    .solution-block, .solution-block.reverse { grid-template-columns: 1fr; gap: 36px; }
+    .solution-block.reverse .solution-text { order: 1; }
+    .solution-block.reverse .solution-visual { order: 2; }
+    .impact-grid { grid-template-columns: 1fr; }
+    .inline-nav a { font-size: 10px; padding: 13px 4px; }
+    .site-footer { padding: 36px 24px; }
+  }
+
+  .proj-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+.proj-nav:hover { opacity: 0.75; }
+.proj-nav-label {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+  font-family: 'Lato', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.proj-nav-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  font-family: 'Lato', sans-serif;
+}
+.proj-nav.next { text-align: right; }
+.footer-center { text-align: center; }
+</style>
+</head>
+<body>
+
+<!-- PROGRESS BAR -->
+<div id="progress"></div>
+
+<!-- ── PORTFOLIO NAV ── -->
+<header class="portfolio-nav">
+  <a class="pnav-logo" href="feature_work.html">
+    <img src="https://yi-design.github.io/Images/logo.png" alt="Yi Feng logo" />
+    <span>Yi Feng</span>
+  </a>
+  <nav class="pnav-links">
+    <a href="feature_work.html">Home</a>
+    <a href="feature_work.html">Work</a>
+    <a href="About_Me.html">About Me</a>
+  </nav>
+</header>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+
+  <!-- Cloudwiz brand indicator -->
+  <div class="hero-brand-logo">
+    <span style="font-family:'Lato',sans-serif;font-weight:900;font-size:18px;color:rgba(255,255,255,0.55);letter-spacing:0.08em;text-transform:uppercase;">Cloudwiz</span>
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">UX Case Study · AI-Powered Platform · Cloudwiz</div>
+    <h1 class="hero-title">Redesign Troubleshooting<br>with <em>AI</em></h1>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Role</span>
+        <span class="hero-meta-value">Sole UX Designer</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Team</span>
+        <span class="hero-meta-value">Product · Engineering</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Timeline</span>
+        <span class="hero-meta-value">6-Month Delivery</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Platform</span>
+        <span class="hero-meta-value">Cloudwiz APM Platform</span>
+      </div>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- ── CASE STUDY SUB-NAV ── -->
+<nav class="inline-nav">
+  <a href="#background">Background</a>
+  <a href="#solutions">Solutions</a>
+  <a href="#impact">Impact</a>
+  <a href="#evolution">Design Evolution</a>
+  <a href="#reflection">Reflection</a>
+</nav>
+
+<!-- ══════════════ BACKGROUND ══════════════ -->
+<div class="section-divider"></div>
+<section class="section" id="background">
+  <div class="reveal">
+    <div class="section-label">Background</div>
+    <h2 class="section-title">Bring order out of<br>chaos</h2>
+    <p class="section-body">In 2016, Cloudwiz launched its first AI-powered application performance platform. After six months, the product attracted a wave of trial users — but nearly two-thirds didn't return. One of the primary reasons: a lack of structured troubleshooting onboarding left users stranded mid-workflow, unable to complete analysis and move forward.</p>
+  </div>
+
+  <div class="stack-cards">
+    <div class="stack-card reveal delay-1">
+      <h3>Project Goal</h3>
+      <p>Create an effective onboarding troubleshooting experience and build a <strong style="color:var(--ink)">standard diagnosis and solution closed loop</strong> — enabling users to pinpoint problems efficiently and surface AI-powered recommended solutions at the right moment.</p>
+    </div>
+    <div class="stack-card reveal delay-2">
+      <h3>My Role</h3>
+      <p>As the sole designer on the team, I drove an iterative end-to-end UX design process — translating complex technical concepts into clear, actionable design deliverables and partnering closely with PMs and engineers to bring the design to life.</p>
+      <div class="role-tags">
+        <span class="tag">User Research</span>
+        <span class="tag">Journey Mapping</span>
+        <span class="tag">Interaction Design</span>
+        <span class="tag">Prototyping</span>
+        <span class="tag">Usability Testing</span>
+      </div>
+    </div>
+    <div class="stack-card reveal delay-3">
+      <h3>Design Constraints</h3>
+      <p style="margin-bottom:8px">The troubleshooting redesign had to balance competing pressures in a startup environment:</p>
+      <ul class="constraints-list">
+        <li>Tight budget and limited research timeframe</li>
+        <li>Supporting both novice and expert user mental models</li>
+        <li>Surfacing AI automation without overwhelming the interface</li>
+        <li>Balancing standardized workflows with user customization needs</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ SOLUTIONS ══════════════ -->
+<div class="section-divider"></div>
+<section class="section" id="solutions">
+  <div class="reveal">
+    <div class="section-label">Design Solutions</div>
+    <h2 class="section-title">Three features, one<br>closed loop</h2>
+    <p class="section-body">Each solution addresses a specific failure mode in the troubleshooting workflow — moving from fragmented, manual investigation toward an automated, signal-driven diagnosis experience.</p>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0">
+  <!-- 01 -->
+  <div class="solution-block">
+    <div class="solution-text reveal-left">
+      <div class="solution-number">01</div>
+      <h3>Advanced Alert Page with Facet Search</h3>
+      <p>The refreshed alerting page provided advanced facet search options and a time-series diagram, giving users the ability to identify and isolate issues faster — reducing the cognitive load of scanning unstructured alert lists.</p>
+      <p style="margin-top:14px">This shifted alert management from passive scanning to active, signal-driven prioritization.</p>
+    </div>
+    <div class="solution-visual reveal-right delay-1">
+      <div class="img-frame"><img src="Images/cloudwiz_alerts.png" alt="Alert page with facet search" loading="lazy" /></div>
+    </div>
+  </div>
+
+  <!-- 02 -->
+  <div class="solution-block reverse">
+    <div class="solution-visual reveal-left">
+      <div class="img-frame"><img src="Images/troubleshooting_f2.png" alt="Standard troubleshooting workflow" loading="lazy" /></div>
+    </div>
+    <div class="solution-text reveal-right delay-1">
+      <div class="solution-number">02</div>
+      <h3>Standardized Troubleshooting Workflow</h3>
+      <p>Initiating a standard troubleshooting process shortens users' learning path and enables them to pinpoint problems more efficiently. Users can view problem details clearly at one stop — covering Top N processes, Logs, Metrics, and Events in a unified flow.</p>
+      <p style="margin-top:14px">This unified view eliminated the need to cross-navigate between disconnected sections to understand a single issue.</p>
+    </div>
+  </div>
+
+  <!-- 03 -->
+  <div class="solution-block">
+    <div class="solution-text reveal-left">
+      <div class="solution-number">03</div>
+      <h3>AI-Powered Recommended Solutions</h3>
+      <p>Cloudwiz's core value is leveraging machine learning to debug and optimize performance proactively. We surfaced the automated troubleshooting process directly in the issue detail page — the system automatically scans, signals problem areas, and demonstrates recommended solution options.</p>
+      <p style="margin-top:14px">This transformed the platform from a monitoring tool into an <strong style="color:var(--ink)">insight-to-action engine</strong> that guided users to resolution.</p>
+    </div>
+    <div class="solution-visual reveal-right delay-1">
+      <div class="img-frame"><img src="Images/troubleshooting_solutions.png" alt="AI-powered recommended solutions" loading="lazy" /></div>
+    </div>
+  </div>
+</section>
+
+<!-- Full-width demo -->
+<div class="full-img-wrap reveal">
+  <div class="img-frame">
+    <img src="Images/troubleshooting_demo.png" alt="Troubleshooting final design overview" loading="lazy" />
+  </div>
+</div>
+
+<!-- ══════════════ IMPACT ══════════════ -->
+<div class="section-divider" style="margin-top:80px"></div>
+<section class="section" id="impact">
+  <div class="reveal">
+    <div class="section-label">Impact</div>
+    <h2 class="section-title">From dropout to<br>confident completion</h2>
+    <p class="section-body">The redesign not only shortened the time spent on troubleshooting, it also attracted users to engage with recommended solutions and correlation analysis — the core value features of the platform.</p>
+  </div>
+
+  <div class="impact-grid">
+    <div class="impact-item reveal delay-1">
+      <div class="impact-value">90%</div>
+      <div class="impact-label">Troubleshooting completion rate — users completing end-to-end diagnosis and reaching a solution</div>
+    </div>
+    <div class="impact-item reveal delay-2">
+      <div class="impact-value">85%</div>
+      <div class="impact-label">User satisfaction rate — across both novice onboarding users and experienced IT professionals</div>
+    </div>
+    <div class="impact-item reveal delay-3">
+      <div class="impact-value">+35%</div>
+      <div class="impact-label">Increase in user satisfaction rate from baseline — driven by the automated closed-loop solution</div>
+    </div>
+  </div>
+
+  <div class="reflection-block reveal" style="margin-top:40px">
+    <div class="section-label" style="margin-bottom:18px">Key Insight</div>
+    <p>"The most effective design decision wasn't adding a new feature — it was surfacing what the system already knew. Automating the diagnostic scan turned a manual, expert-only process into an accessible workflow for every user."</p>
+  </div>
+</section>
+
+<!-- ══════════════ DESIGN EVOLUTION ══════════════ -->
+<div class="section-divider"></div>
+<section class="section" id="evolution">
+  <div class="reveal">
+    <div class="section-label">Design Evolution</div>
+    <h2 class="section-title">From chaos to<br>closed loop</h2>
+    <p class="section-body">Three design iterations over six months — moving from novice-first step-by-step guidance toward an automated, AI-driven troubleshooting loop that serves both new and experienced users.</p>
+  </div>
+
+  <div class="evo-steps">
+
+    <!-- Step 1 -->
+    <div class="evo-step reveal delay-1">
+      <div class="evo-step-header">
+        <div class="evo-step-num">01</div>
+        <div class="evo-step-title">Frame the Problem — Identifying why users dropped out</div>
+      </div>
+      <p class="evo-step-desc">When I joined Cloudwiz, the MVP had been live for several months serving five enterprise clients. As more features were added, users increasingly dropped out during trial. Based on feedback from sales engineers, we concluded a lack of troubleshooting onboarding was the root cause. I framed three key design questions: What factors most commonly trigger alerts? Is there a standard workflow that handles all issues? And if so, how do we onboard users through it?</p>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="evo-step reveal delay-2">
+      <div class="evo-step-header">
+        <div class="evo-step-num">02</div>
+        <div class="evo-step-title">Research — Pattern-hunting through interviews and competitive analysis</div>
+      </div>
+      <p class="evo-step-desc">I conducted user interviews with two clients and one internal subject-matter expert, plus a competitive analysis of Datadog, New Relic, Dynatrace, and Splunk — finding that leading APM products consolidated relevant information into unified dashboards. I also created a journey map covering two typical user workflows to align stakeholders on the scope of impact and define success metrics. This led to identifying Top N processes, Logs, Metrics, and Events as the core troubleshooting areas.</p>
+      <div class="evo-step-img">
+        <div class="img-frame"><img src="Images/My%20First%20Board%20(2).jpg" alt="Strategy pattern mapping" loading="lazy" /></div>
+      </div>
+      <div class="evo-step-img" style="margin-top:20px">
+        <div class="img-frame"><img src="Images/competitive%20analysis.png" alt="Competitive analysis of APM platforms" loading="lazy" /></div>
+      </div>
+      <div class="evo-step-img" style="margin-top:20px">
+        <div class="img-frame"><img src="Images/Experience%20Map.png" alt="User journey map" loading="lazy" /></div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="evo-step reveal delay-3">
+      <div class="evo-step-header">
+        <div class="evo-step-num">03</div>
+        <div class="evo-step-title">Iteration 1 — Guided step-by-step onboarding for novice users</div>
+      </div>
+      <p class="evo-step-desc">Considering feedback came primarily from novice users, my first design solution walked users through each troubleshooting step all the way to recommended solutions. It tied all main features into a standard workflow, helping users establish a systematic troubleshooting mindset. While effective for new users, this design required too much hand-holding for experienced IT professionals who needed direct access to data.</p>
+      <div class="evo-step-img">
+        <div class="img-frame">
+          <img src="Images/troubleshooting%20prototype.png" alt="Troubleshooting onboarding prototype" loading="lazy" />
+          <figcaption>Troubleshooting onboarding prototype — step-by-step guidance</figcaption>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="evo-step reveal delay-4">
+      <div class="evo-step-header">
+        <div class="evo-step-num">04</div>
+        <div class="evo-step-title">Iteration 2 — Dashboard view for experienced users</div>
+      </div>
+      <p class="evo-step-desc">For experienced users, I designed a dashboard view per issue — providing a high-level overview of key metrics and recommended solutions via graph-based panels covering the four main troubleshooting areas. The goal was to give experts full control based on prioritized information. However, this version still required significant manual effort to correlate signals across panels.</p>
+      <div class="evo-step-img">
+        <div class="img-frame">
+          <img src="Images/troubleshooting%20prototype%202.1.png" alt="Alert page dashboard view" loading="lazy" />
+          <figcaption>Alert page — expert dashboard iteration</figcaption>
+        </div>
+      </div>
+      <div class="evo-step-img" style="margin-top:20px">
+        <div class="img-frame">
+          <img src="Images/troubleshooting%20prototype%202.2.png" alt="Issue detail page" loading="lazy" />
+          <figcaption>Issue detail page</figcaption>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="evo-step reveal delay-5">
+      <div class="evo-step-header">
+        <div class="evo-step-num">05</div>
+        <div class="evo-step-title">Final Design — Automated troubleshooting at one stop</div>
+      </div>
+      <p class="evo-step-desc">Inspired by a backend engineer's insight, I surfaced the automated troubleshooting process upfront. When users land on the issue detail page, the system automatically scans, signals problem areas, and demonstrates recommended solution options — closing the diagnosis loop without requiring manual investigation across sections. This design served both user segments simultaneously.</p>
+      <div class="evo-step-img">
+        <div class="img-frame">
+          <img src="Images/troubleshooting_final.png" alt="Final automated troubleshooting design" loading="lazy" />
+          <figcaption>Final version — automated closed-loop troubleshooting</figcaption>
+        </div>
+      </div>
+      <div class="evo-step-img" style="margin-top:20px">
+        <div class="img-frame">
+          <img src="Images/troubleshooting%20_list%20iteration.png" alt="Alert page iteration" loading="lazy" />
+          <figcaption>Alert page iteration</figcaption>
+        </div>
+      </div>
+      <div class="evo-step-img" style="margin-top:20px">
+        <div class="img-frame">
+          <img src="Images/solution%20page%20iterations.png" alt="Solution page iterations" loading="lazy" />
+          <figcaption>Solution page iteration</figcaption>
+        </div>
+      </div>
+      <div class="evo-step-img" style="margin-top:20px">
+        <div class="img-frame">
+          <img src="Images/troubleshooting-workflow-demo.gif" alt="Final version workflow demo" loading="lazy" />
+          <figcaption>Final version workflow demo</figcaption>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════ REFLECTION ══════════════ -->
+<div class="section-divider"></div>
+<section class="section" id="reflection">
+  <div class="reveal">
+    <div class="section-label">Design Reflection</div>
+    <h2 class="section-title">From Features to System Intelligence</h2>
+    <p class="section-body">This project taught me that the most powerful design decisions aren't always visual — they're structural. Identifying the right pattern, building a standardized workflow, and then automating it transformed troubleshooting from a chaotic manual process into a guided, intelligent experience. Working as the sole designer in a resource-constrained startup reinforced the value of iterative thinking: each version revealed something the previous one couldn't, and the final design only emerged because we followed the signal from users and engineers alike. This perspective now shapes how I approach AI-powered product design — not as layering automation on top of existing flows, but as fundamentally rethinking what the system can surface on behalf of the user.</p>
+  </div>
+</section>
+
+
+<!-- ══════════════ FOOTER ══════════════ -->
+<footer class="site-footer">
+  <a class="proj-nav prev" href="Harness_growth (1).html">
+    <span class="proj-nav-label">← Previous</span>
+    <span class="proj-nav-title">Harness Growth</span>
+  </a>
+
+  <div class="footer-center">
+    <div class="foot-brand">Cloudwiz — Troubleshooting Workflow · AI-powered APM Platform</div>
+    <p>Yi Feng Design · UX Case Study · 2019</p>
+  </div>
+
+</footer>
+
+<!-- ── IMAGE LIGHTBOX MODAL ── -->
+<div class="lightbox-modal" id="lightboxModal" aria-hidden="true">
+  <div class="lightbox-content">
+    <button class="lightbox-close" id="lightboxClose" aria-label="Close image view">&times;</button>
+    <img class="lightbox-image" id="lightboxImage" src="" alt="Expanded project image" />
+  </div>
+</div>
+
+<script>
+  // Progress bar
+  const progress = document.getElementById('progress');
+  window.addEventListener('scroll', () => {
+    const total = document.documentElement.scrollHeight - window.innerHeight;
+    progress.style.width = (window.scrollY / total * 100) + '%';
+  }, { passive: true });
+
+  // Scroll reveal
+  const revealEls = document.querySelectorAll('.reveal, .reveal-left, .reveal-right');
+  const revealObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); revealObs.unobserve(e.target); }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+  revealEls.forEach(el => revealObs.observe(el));
+
+  // Parallax hero grid
+  const heroGrid = document.querySelector('.hero-grid');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY < window.innerHeight)
+      heroGrid.style.transform = `translateY(${window.scrollY * 0.25}px)`;
+  }, { passive: true });
+
+  // Active sub-nav on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.inline-nav a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 180) current = s.id; });
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + current));
+  }, { passive: true });
+
+  // Image lightbox interaction
+  const lightboxModal = document.getElementById('lightboxModal');
+  const lightboxImage = document.getElementById('lightboxImage');
+  const lightboxClose = document.getElementById('lightboxClose');
+  const galleryImages = document.querySelectorAll('.img-frame img');
+
+  galleryImages.forEach(img => {
+    img.addEventListener('click', () => {
+      lightboxImage.src = img.src;
+      lightboxImage.alt = img.alt;
+      lightboxModal.classList.add('active');
+      lightboxModal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    });
+  });
+
+  const closeLightbox = () => {
+    lightboxModal.classList.remove('active');
+    lightboxModal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  };
+
+  lightboxClose.addEventListener('click', closeLightbox);
+  lightboxModal.addEventListener('click', (e) => {
+    if (e.target === lightboxModal) closeLightbox();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && lightboxModal.classList.contains('active')) closeLightbox();
+  });
+</script>
+
+</body>
+</html>

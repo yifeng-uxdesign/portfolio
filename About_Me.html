@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="yi feng portfolios">
+    <title>Yi Feng — About</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600&family=Taviraj:wght@500&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <!-- Custom styles -->
+    <link href="css/cover%20copy.css" rel="stylesheet">
+    <link href="css/hover.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- fontAwesome -->
+    <script src="https://kit.fontawesome.com/831438efe9.js" crossorigin="anonymous"></script>
+
+    <style>
+      /* ── Tab nav ── */
+      .about-tabs {
+        display: flex;
+        gap: 0;
+        border-bottom: 2px solid #e0e0e0;
+        margin-bottom: 2.5rem;
+        flex-wrap: wrap;
+      }
+      .about-tab-btn {
+        background: none;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        font-family: 'Source Sans Pro', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #888;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+        transition: color 0.2s, border-color 0.2s;
+        letter-spacing: 0.02em;
+      }
+      .about-tab-btn:hover {
+        color: #333;
+      }
+      .about-tab-btn.active {
+        color: #222;
+        border-bottom-color: #222;
+      }
+
+      /* ── Tab panels ── */
+      .about-panel {
+        display: none;
+        animation: fadeIn 0.25s ease;
+      }
+      .about-panel.active {
+        display: block;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      /* ── Typography inside panels ── */
+      .panel-heading {
+        font-family: 'Taviraj', serif;
+        font-size: 1.5rem;
+        font-weight: 500;
+        color: #222;
+        margin-bottom: 1.25rem;
+      }
+      .panel-body p {
+        font-family: 'Source Sans Pro', sans-serif;
+        font-size: 1.05rem;
+        line-height: 1.8;
+        color: #444;
+        margin-bottom: 1.25rem;
+      }
+
+      /* ── Timeline (My Journey) ── */
+      .timeline {
+        border-left: 2px solid #e0e0e0;
+        padding-left: 1.75rem;
+        margin-top: 1rem;
+      }
+      .timeline-item {
+        position: relative;
+        margin-bottom: 2rem;
+      }
+      .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -2.2rem;
+        top: 0.4rem;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #222;
+        border: 2px solid #fff;
+        outline: 2px solid #222;
+      }
+      .timeline-year {
+        font-family: 'Source Sans Pro', sans-serif;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #999;
+        margin-bottom: 0.25rem;
+      }
+      .timeline-text {
+        font-family: 'Source Sans Pro', sans-serif;
+        font-size: 1.05rem;
+        line-height: 1.8;
+        color: #444;
+        margin: 0;
+      }
+
+      /* ── Philosophy cards (3 E's) ── */
+      .philosophy-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+      }
+      .philosophy-card {
+        border: 1.5px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 1.5rem 1.25rem;
+      }
+      .philosophy-letter {
+        font-family: 'Taviraj', serif;
+        font-size: 2.5rem;
+        font-weight: 500;
+        color: #222;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+      }
+      .philosophy-title {
+        font-family: 'Source Sans Pro', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #555;
+        margin-bottom: 0.75rem;
+      }
+      .philosophy-desc {
+        font-family: 'Source Sans Pro', sans-serif;
+        font-size: 0.95rem;
+        line-height: 1.7;
+        color: #555;
+        margin: 0;
+      }
+
+      /* ── Thesis callout ── */
+      .thesis-callout {
+        border-left: 3px solid #222;
+        padding: 1rem 1.5rem;
+        background: #f8f8f8;
+        border-radius: 0 6px 6px 0;
+        margin: 1.5rem 0;
+      }
+      .thesis-callout p {
+        font-family: 'Taviraj', serif;
+        font-size: 1.1rem;
+        line-height: 1.7;
+        color: #333;
+        margin: 0;
+        font-style: italic;
+      }
+
+      /* ── CTA ── */
+      .cta-block {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e0e0e0;
+      }
+      .cta-block p {
+        font-family: 'Source Sans Pro', sans-serif;
+        font-size: 1.05rem;
+        line-height: 1.8;
+        color: #444;
+        margin-bottom: 1rem;
+      }
+      .cta-link {
+        font-family: 'Source Sans Pro', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #222;
+        text-decoration: none;
+        border-bottom: 2px solid #222;
+        padding-bottom: 1px;
+        transition: opacity 0.2s;
+      }
+      .cta-link:hover {
+        opacity: 0.6;
+        text-decoration: none;
+        color: #222;
+      }
+
+      /* ── Profile image ── */
+      .profile-wrap {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+      .profile-wrap img {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid #e0e0e0;
+      }
+      .profile-name {
+        font-family: 'Taviraj', serif;
+        font-size: 2rem;
+        font-weight: 500;
+        color: #222;
+        margin-top: 1rem;
+        margin-bottom: 0.25rem;
+      }
+      .profile-tagline {
+        font-family: 'Source Sans Pro', sans-serif;
+        font-size: 0.95rem;
+        color: #888;
+        letter-spacing: 0.04em;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="d-flex w-100 h-100 flex-column">
+
+      <!-- Nav -->
+      <header class="container-fluid masthead mb-5 mt-5">
+        <div>
+          <a class="navbar-brand masthead-brand logo" href="index.html">
+            <img id="logo" src="Images/logo.png" width="32" height="32" class="d-inline-block" alt="">
+            <span id="style"><b>Yi Feng</b></span>
+          </a>
+          <nav class="nav nav-masthead justify-content-center">
+            <a class="nav-link" href="index.html">Home</a>
+            <a class="nav-link" href="feature%20work.html">Work</a>
+            <a class="nav-link active" href="About_Me.html">About Me</a>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Main -->
+      <main role="main">
+        <div class="container-fluid d-flex justify-content-center project-bg-4">
+          <div class="container-fluid d-flex justify-content-center mt-3">
+            <div class="row w-100">
+              <div class="col-lg-1"></div>
+              <div class="col-lg-10 mt-1 mb-1">
+
+                <!-- Profile header -->
+                <div class="profile-wrap mt-1">
+                  <img src="Images/IMG_4778.JPG" alt="Yi Feng profile photo">
+                  <div class="profile-name">Hi, I'm Yi.</div>
+                  <div class="profile-tagline">Senior UX Designer · AI Agent Design</div>
+                </div>
+
+                <!-- Tab nav -->
+                <div class="about-tabs" role="tablist">
+                  <button class="about-tab-btn active" role="tab" aria-selected="true"  onclick="switchTab('journey')">My journey</button>
+                  <button class="about-tab-btn"          role="tab" aria-selected="false" onclick="switchTab('focus')">Where I'm focused</button>
+                  <button class="about-tab-btn"          role="tab" aria-selected="false" onclick="switchTab('thinking')">How I think about AI</button>
+                  <button class="about-tab-btn"          role="tab" aria-selected="false" onclick="switchTab('philosophy')">Design philosophy</button>
+                </div>
+
+                <!-- Panel: My Journey -->
+                <div id="panel-journey" class="about-panel active" role="tabpanel">
+                  <div class="panel-body">
+                    <p>I came to the United States in 2010 carrying two things: uncertainty about where I'd land, and a deep instinct that good design was about understanding people first, systems second.</p>
+                    <div class="timeline">
+                      <div class="timeline-item">
+                        <div class="timeline-year">2010 — 2016</div>
+                        <p class="timeline-text">Arrived in the US and honed my craft through graduate school projects at San Jose State University and an 8-month internship at Lam Research — building the foundation of visual, interaction, and research skills that would carry me forward.</p>
+                      </div>
+                      <div class="timeline-item">
+                        <div class="timeline-year">2016 — 2019</div>
+                        <p class="timeline-text">Joined <em>Cloudwiz</em> as the founding designer and built an Application Performance Monitoring platform from scratch — no design system, no research backlog, no team. Just the problem space and the users inside it. Over three years, I learned that the best design decisions come from understanding the whole system well enough to know which lever to pull.</p>
+                      </div>
+                      <div class="timeline-item">
+                        <div class="timeline-year">2019 — 2025</div>
+                        <p class="timeline-text">That systems orientation carried me through five years at <em>Harness</em> and <em>ServiceNow</em>, designing for enterprise workflows where the stakes were high and the complexity was real — working on agentic AI features, partner experience platforms, and growth surfaces.</p>
+                      </div>
+                      <div class="timeline-item">
+                        <div class="timeline-year">2025 — Now</div>
+                        <p class="timeline-text">Pivoting fully into AI agent design, bringing a decade of enterprise UX experience to the hardest design problems in the agentic era.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Panel: Where I'm Focused -->
+                <div id="panel-focus" class="about-panel" role="tabpanel">
+                  <div class="panel-body">
+                    <p>At Harness and ServiceNow, I kept noticing the same gap: the design field was treating AI agents like smarter UI components, when they're actually a fundamentally new kind of collaborator.</p>
+                    <p>That realization became a direction. I'm now focused on AI agent design — not as a feature layer on top of existing products, but as its own discipline.</p>
+                    <div class="thesis-callout">
+                      <p>How does an agent build trust over time? What does it mean to design for a system that can act, fail, and recover without a human in the loop? How do you make an agent's reasoning legible without making it exhausting?</p>
+                    </div>
+                    <p>These are the questions I'm working through — including in my Lead Intelligence Agent project, where I designed a full behavior system: trust states, orchestration modes, and an evaluation framework for an AI sales qualification agent.</p>
+                    <p>I'm looking for teams building AI-native products where agent design is central, or established companies reimagining their workflows around intelligent systems.</p>
+                    <div class="cta-block">
+                      <p>If that's you, I'd like to talk.</p>
+                      <a class="cta-link" href="mailto:annefeng68+job@gmail.com">annefeng68+job@gmail.com</a>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Panel: How I Think About AI -->
+                <div id="panel-thinking" class="about-panel" role="tabpanel">
+                  <div class="panel-body">
+                    <p style="color:#999; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:600; margin-bottom:1.5rem;">My assumptions about the future of work and agent OS</p>
+                    <p>I believe AI will split professionals into two identities: a human self that thinks, observes, and builds relationships — and a digital self that executes on their behalf.</p>
+                    <p>Eventually, agents will be sold as standardized "agent operating systems" — pre-equipped with the domain mechanics of a given profession. A sales agent OS handles outreach and qualification. A design agent OS drafts, iterates, and delivers. Capable, but generic.</p>
+                    <div class="thesis-callout">
+                      <p>What no agent OS ships with is the human's particular way of seeing. The judgment, the instinct, the close attention that turns technically correct output into something people genuinely trust.</p>
+                    </div>
+                    <p>In an agent-native world, the competitive edge won't be which OS you're running — it'll be the quality of the human behind it.</p>
+                    <p>That's the design space I work in: the interface between human judgment and agent execution, where the most important UX problem isn't how autonomous the agent can become, but how well it translates a person's unique perspective into work that earns lasting trust.</p>
+                  </div>
+                </div>
+
+                <!-- Panel: Design Philosophy -->
+                <div id="panel-philosophy" class="about-panel" role="tabpanel">
+                  <div class="panel-body">
+                    <p>My approach rests on three principles — but what I've learned over the years is that these aren't just values. They're a system.</p>
+                    <div class="philosophy-grid">
+                      <div class="philosophy-card">
+                        <div class="philosophy-letter">E</div>
+                        <div class="philosophy-title">Empathy</div>
+                        <p class="philosophy-desc">Understanding users deeply enough to know what they actually need — not just what they ask for. Empathy without structure produces research that goes nowhere.</p>
+                      </div>
+                      <div class="philosophy-card">
+                        <div class="philosophy-letter">E</div>
+                        <div class="philosophy-title">Engagement</div>
+                        <p class="philosophy-desc">Designing products people genuinely want to interact with. Engagement without purpose produces interfaces that entertain but don't serve.</p>
+                      </div>
+                      <div class="philosophy-card">
+                        <div class="philosophy-letter">E</div>
+                        <div class="philosophy-title">Empowerment</div>
+                        <p class="philosophy-desc">Giving users the tools and confidence to achieve their goals. Empowerment without trust produces tools people route around.</p>
+                      </div>
+                    </div>
+                    <p>The work that matters connects all three — and holds them together even when the technology underneath is changing fast. In the context of AI agent design, this means building systems that feel as trustworthy as they are capable.</p>
+                  </div>
+                </div>
+
+              </div><!-- col -->
+              <div class="col-lg-1"></div>
+            </div><!-- row -->
+          </div>
+        </div>
+      </main>
+
+      <footer class="container-fluid d-flex justify-content-center mt-5 pt-5 project-bg-4">
+        Yi Feng Design by BootStrap&copy; Copyright 2025
+      </footer>
+    </div>
+
+    <script src="zenscroll-min.js"></script>
+    <script>
+      function switchTab(id) {
+        document.querySelectorAll('.about-tab-btn').forEach(function(btn, i) {
+          var ids = ['journey','focus','thinking','philosophy'];
+          btn.classList.toggle('active', ids[i] === id);
+          btn.setAttribute('aria-selected', ids[i] === id ? 'true' : 'false');
+        });
+        document.querySelectorAll('.about-panel').forEach(function(panel) {
+          panel.classList.toggle('active', panel.id === 'panel-' + id);
+        });
+      }
+    </script>
+  </body>
+</html>
